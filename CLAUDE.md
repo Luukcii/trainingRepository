@@ -183,6 +183,8 @@ scripts/seed-admin.ts  # Creates the admin account
 
 **Windows note:** Node is at `C:\Program Files\nodejs`. In Claude's Bash tool, prefix with `export PATH="/c/Program Files/nodejs:$PATH"` if `node` isn't found.
 
+**Vercel CLI** is installed globally (`npm i -g vercel`). Run it from PowerShell, not Git Bash (Bash mangles its global path). Authenticate with `VERCEL_TOKEN` from `.env.tools` (the CLI reads that env var; never pass `--token` on the command line). The Vercel plugin (skills + Vercel MCP) is installed at user scope; MCP mutations always need human confirmation.
+
 ---
 
 ## 10. Current state
