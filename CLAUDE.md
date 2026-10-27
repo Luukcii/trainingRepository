@@ -70,8 +70,10 @@ Max **never** interacts with GitHub settings, Vercel, Neon, Cloudflare, or Resen
 ### Env files
 | File | Holds | Who reads it |
 |---|---|---|
-| `.env.local` | App runtime vars (`DATABASE_URL`, `BETTER_AUTH_SECRET`, `BETTER_AUTH_URL`) | The Next.js app |
-| `.env.tools` | Admin credentials (`DATABASE_ADMIN_URL`, `NEON_TOKEN`, `GITHUB_TOKEN`, `VERCEL_TOKEN`, `RESEND_API_KEY`, Cloudflare) | Claude only, for managing services |
+| `.env.local` | App runtime vars (`DATABASE_URL`, `BETTER_AUTH_SECRET`, `BETTER_AUTH_URL`, `RESEND_API_KEY` — sending-only) | The Next.js app |
+| `.env.tools` | Admin credentials (`DATABASE_ADMIN_URL`, `NEON_TOKEN`, `GITHUB_TOKEN`, `VERCEL_TOKEN`, Cloudflare) | Claude only, for managing services |
+
+Resend account management (domains, keys, verification) goes through the Resend MCP (OAuth), not a key file. Never create API keys via MCP — the key would appear in tool output; the owner creates keys in the dashboard.
 | `.env.example` | Variable **names** only | Committed; documents what's needed |
 
 Admin tokens **never** go into Vercel env vars or the app. Least privilege: the app gets only what it needs to run.
@@ -98,7 +100,7 @@ New tables created by `neondb_owner` automatically grant row access to `app_user
 | ORM | Drizzle | Schema in code; migrations committed |
 | Auth | Better Auth, email + password | **Signup disabled.** Max's account created via a seed script |
 | Hosting | Vercel (`*.vercel.app`, no custom domain) | `main` = production; branches = previews |
-| Email | Resend (later) | Default Resend sending domain until a custom domain exists |
+| Email | Resend (wired, unused) | `src/lib/email.ts`: `getResend()` + `EMAIL_FROM`. No domain yet → sends only from `onboarding@resend.dev` to the Resend account owner's inbox |
 | Storage | Cloudflare R2 (later, not active) | |
 
 **Adding a dependency:** say what it is, why we need it, and why not without it. Fewer dependencies = less to break and less attack surface.
@@ -194,4 +196,5 @@ scripts/seed-admin.ts  # Creates the admin account
 - **Live site:** https://training-repository-ten.vercel.app (deploys on every push to `main`).
 - **Vercel:** project `training-repository` (`prj_tabmu7SaP7AuOAD2AL6inZb0ovgc`), team `training-d2d4` (`team_rYfByG0EYNOpXgrDeZOJY2LX`). Local folder linked via `.vercel/project.json` (git-ignored).
 - **Vercel env vars (production only):** `DATABASE_URL` (sensitive, app_user), `BETTER_AUTH_SECRET` (sensitive, differs from local), `BETTER_AUTH_URL` (the live URL). Sensitive values can't be read back — to change one, overwrite it. Preview deploys have no env vars yet (we don't use branches); add them when we do.
-- **Not yet set up:** Resend.
+- **Resend:** SDK installed, `src/lib/email.ts` ready, Resend plugin + MCP installed (user scope). Needs: owner's sending-only `RESEND_API_KEY` in `.env.local`, then Claude copies it to Vercel (production, sensitive).
+- **Email domain:** none. `*.vercel.app` can't hold DNS records, so Resend can't verify it. When the owner gets a domain: create a Resend domain on a subdomain (e.g. `mail.example.com`) via MCP, add its SPF/DKIM/MX records — if DNS is at Vercel, via Resend's **Auto configure** or Vercel's DNS API — verify, then update `EMAIL_FROM` and restrict the app key to that domain. Adding a domain needs the owner's OK (cost).
