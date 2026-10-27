@@ -191,4 +191,7 @@ scripts/seed-admin.ts  # Creates the admin account
 
 - **Admin account:** Max, xxmdrdxx@gmail.com. Login at `/login`.
 - **Rate limit:** 5 login attempts per minute, stored in the database.
-- **Not yet set up:** Vercel project and env vars, Resend. When Vercel is linked, set its env vars to `.env.local`'s names, with `BETTER_AUTH_URL` = the production `*.vercel.app` URL and a **new** `BETTER_AUTH_SECRET` for production.
+- **Live site:** https://training-repository-ten.vercel.app (deploys on every push to `main`).
+- **Vercel:** project `training-repository` (`prj_tabmu7SaP7AuOAD2AL6inZb0ovgc`), team `training-d2d4` (`team_rYfByG0EYNOpXgrDeZOJY2LX`). Local folder linked via `.vercel/project.json` (git-ignored).
+- **Vercel env vars (production only):** `DATABASE_URL` (sensitive, app_user), `BETTER_AUTH_SECRET` (sensitive, differs from local), `BETTER_AUTH_URL` (the live URL). Sensitive values can't be read back — to change one, overwrite it. Preview deploys have no env vars yet (we don't use branches); add them when we do.
+- **Not yet set up:** Resend.
