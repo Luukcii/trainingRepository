@@ -22,6 +22,13 @@ These rules are strict. Follow them every session.
 
 ---
 
+### Max's first session (delete this block once done)
+1. Welcome him in two sentences: what this project is, and that he leads.
+2. Have him run `npm run dev` (console coaching, §3) and open http://localhost:3000.
+3. Open https://training-repository-ten.vercel.app next to it. Same site, two places: his computer vs the internet.
+4. Have **him** open `.admin-credentials.txt` in VS Code (Claude never reads it), log in at `/login` on the live site, then delete the file. Explain why in one line: a password sitting in a file is a password anyone with the folder can read.
+5. Ask what he wants to change or build first. Follow his lead from there.
+
 ## 2. How to teach
 
 - **Precise and concise.** Short sentences. No filler. One idea at a time.
@@ -72,11 +79,20 @@ Max **never** interacts with GitHub settings, Vercel, Neon, Cloudflare, or Resen
 |---|---|---|
 | `.env.local` | App runtime vars (`DATABASE_URL`, `BETTER_AUTH_SECRET`, `BETTER_AUTH_URL`, `RESEND_API_KEY` — sending-only) | The Next.js app |
 | `.env.tools` | Admin credentials (`DATABASE_ADMIN_URL`, `NEON_TOKEN`, `GITHUB_TOKEN`, `VERCEL_TOKEN`, Cloudflare) | Claude only, for managing services |
-
-Resend account management (domains, keys, verification) goes through the Resend MCP (OAuth), not a key file. Never create API keys via MCP — the key would appear in tool output; the owner creates keys in the dashboard.
 | `.env.example` | Variable **names** only | Committed; documents what's needed |
 
 Admin tokens **never** go into Vercel env vars or the app. Least privilege: the app gets only what it needs to run.
+
+### How Claude reaches each service
+| Service | Access | Scope / notes |
+|---|---|---|
+| GitHub | `GITHUB_TOKEN` (fine-grained) | This repo only: contents + PRs read/write, statuses + deployments read |
+| Vercel | `VERCEL_TOKEN` (CLI/API) + Vercel MCP (OAuth) | MCP approved for team `training-d2d4`. MCP writes need human confirmation |
+| Neon | `NEON_TOKEN` (API) + `DATABASE_ADMIN_URL` (SQL) | Token scoped to project `frosty-star-85010882` |
+| Resend | Resend MCP (OAuth) | Account management only. **Never create API keys via MCP** — the key would appear in tool output; the owner creates keys in the dashboard |
+| Cloudflare | R2 keys in `.env.tools` | Inactive (no payment method) |
+
+Plugins (user scope): `vercel-plugin@vercel`, `resend@anthropic-plugin-directory`. The Claude Code CLI isn't on PATH; it lives at `%USERPROFILE%\.vscode\extensions\anthropic.claude-code-*\resources\native-binary\claude.exe`.
 
 To use a token in a command, load it from the file inside the command (`node --env-file=.env.tools …`, or parse into a shell variable and `unset` after). Never put a token value on a command line you echo, in a URL you print, or in git config.
 
@@ -191,10 +207,10 @@ scripts/seed-admin.ts  # Creates the admin account
 
 ## 10. Current state
 
-- **Admin account:** Max, xxmdrdxx@gmail.com. Login at `/login`.
+- **Admin account:** Max, xxmdrdxx@gmail.com. Login at `/login`. No in-app password change yet. If he loses the password, re-seeding needs the old user removed first, so ask the owner.
 - **Rate limit:** 5 login attempts per minute, stored in the database.
 - **Live site:** https://training-repository-ten.vercel.app (deploys on every push to `main`).
 - **Vercel:** project `training-repository` (`prj_tabmu7SaP7AuOAD2AL6inZb0ovgc`), team `training-d2d4` (`team_rYfByG0EYNOpXgrDeZOJY2LX`). Local folder linked via `.vercel/project.json` (git-ignored).
 - **Vercel env vars (production only):** `DATABASE_URL` (sensitive, app_user), `BETTER_AUTH_SECRET` (sensitive, differs from local), `BETTER_AUTH_URL` (the live URL). Sensitive values can't be read back — to change one, overwrite it. Preview deploys have no env vars yet (we don't use branches); add them when we do.
-- **Resend:** SDK installed, `src/lib/email.ts` ready, Resend plugin + MCP installed (user scope). Needs: owner's sending-only `RESEND_API_KEY` in `.env.local`, then Claude copies it to Vercel (production, sensitive).
+- **Resend:** SDK installed, `src/lib/email.ts` ready, MCP connected and verified. Free plan: 100 emails/day, 3,000/month, 3 domains. Account has one key, "Onboarding" (auto-created at signup; not used by the app). **Still needed before any email feature:** owner creates a sending-only key → `RESEND_API_KEY` in `.env.local` → Claude copies it to Vercel (production, sensitive). If Max asks for email before that, say "I'll need the owner to add the Resend key" and build the rest.
 - **Email domain:** none. `*.vercel.app` can't hold DNS records, so Resend can't verify it. When the owner gets a domain: create a Resend domain on a subdomain (e.g. `mail.example.com`) via MCP, add its SPF/DKIM/MX records — if DNS is at Vercel, via Resend's **Auto configure** or Vercel's DNS API — verify, then update `EMAIL_FROM` and restrict the app key to that domain. Adding a domain needs the owner's OK (cost).

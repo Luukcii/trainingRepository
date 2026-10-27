@@ -134,5 +134,6 @@ The project's memory of what Max knows. Claude reads this at the start of every 
 ## Session log
 *Newest first. Date, what we covered, what landed, what to revisit.*
 
+- **2026-10-27 (handoff)**: Setup finished by the owner: GitHub, Vercel, Neon and Resend are connected; Claude manages them all. Ready for Max. Next session is his first, so follow "Max's first session" in CLAUDE.md. Nothing below is marked as learned yet; everything so far was the owner's setup.
 - **2026-10-27 (later)**: Site is live at https://training-repository-ten.vercel.app. Every push to `main` redeploys it. First thing for Max: show him the live site next to `localhost:3000`. It's the same code in two places, which makes a good way into "localhost vs deployed" and "what a push does".
 - **2026-10-27**: Owner set up the project: Node installed, pilot site built (one-page portfolio, header/menu/footer, login, admin dashboard with empty control-surface panels). Max not yet onboarded. Good first session: open the terminal, run `npm run dev`, see the site, log in with `.admin-credentials.txt`, then ask what he wants to change.
