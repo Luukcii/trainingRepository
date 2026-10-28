@@ -3,6 +3,7 @@ export const siteNav = [
   { href: "/#about", label: "About" },
   { href: "/#work", label: "Work" },
   { href: "/#contact", label: "Contact" },
+  { href: "/login", label: "Log in" },
 ];
 
 export const siteName = "Max";
