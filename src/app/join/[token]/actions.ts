@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import { z } from "zod";
 import { claimInvite, finishInvite, releaseInvite } from "@/lib/invites";
 import { signupAuth } from "@/lib/signup-auth";
+import { logActivity } from "@/lib/activity";
 
 // The rules every signup must pass, checked on the server. The browser's checks are only a courtesy.
 const JoinInput = z.object({
@@ -26,6 +27,7 @@ export async function joinAction(_prev: JoinState, form: FormData): Promise<Join
   try {
     const { user } = await signupAuth.api.signUpEmail({ body: { name, email, password } });
     await finishInvite(inviteId, user.id);
+    await logActivity(user.id, "joined", "joined with an invite");
   } catch {
     await releaseInvite(inviteId); // the link still works for another try
     return { error: "Couldn't create that account. Try a different email." };

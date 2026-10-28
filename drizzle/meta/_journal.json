@@ -15,6 +15,13 @@
       "when": 1793149772930,
       "tag": "0001_parallel_spencer_smythe",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1793150674129,
+      "tag": "0002_salty_susan_delgado",
+      "breakpoints": true
     }
   ]
 }

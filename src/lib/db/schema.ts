@@ -1,7 +1,7 @@
 // Database tables, defined in code. Drizzle turns these into SQL migrations.
 // The first four are the tables Better Auth needs; rateLimit stores login-attempt counts.
-// invite holds Max's sign-up links.
-import { pgTable, text, boolean, timestamp, integer, bigint } from "drizzle-orm/pg-core";
+// invite holds Max's sign-up links. guestbookEntry and activity hold what members do.
+import { pgTable, text, boolean, timestamp, integer, bigint, index } from "drizzle-orm/pg-core";
 
 export const user = pgTable("user", {
   id: text("id").primaryKey(),
@@ -73,3 +73,31 @@ export const invite = pgTable("invite", {
   usedBy: text("used_by").references(() => user.id, { onDelete: "set null" }),
   createdAt: timestamp("created_at").notNull().defaultNow(),
 });
+
+export const guestbookEntry = pgTable(
+  "guestbook_entry",
+  {
+    id: text("id").primaryKey(),
+    userId: text("user_id")
+      .notNull()
+      .references(() => user.id, { onDelete: "cascade" }),
+    body: text("body").notNull(),
+    createdAt: timestamp("created_at").notNull().defaultNow(),
+  },
+  (t) => [index("guestbook_entry_created_at_idx").on(t.createdAt)],
+);
+
+// A logbook: one row per thing a member does. The admin activity box reads it, newest first.
+export const activity = pgTable(
+  "activity",
+  {
+    id: text("id").primaryKey(),
+    userId: text("user_id")
+      .notNull()
+      .references(() => user.id, { onDelete: "cascade" }),
+    type: text("type").notNull(), // e.g. "signed_in", "guestbook_post"
+    summary: text("summary").notNull(),
+    createdAt: timestamp("created_at").notNull().defaultNow(),
+  },
+  (t) => [index("activity_created_at_idx").on(t.createdAt)],
+);

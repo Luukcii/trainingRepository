@@ -2,7 +2,7 @@ import { Section } from "@/components/ui/Section";
 
 // Placeholder projects. Later these can come from the database and be edited in /admin.
 const projects = [
-  { title: "Project one", blurb: "What it is, in one line." },
+  { title: "The Good Book", blurb: "What it is, in one line." },
   { title: "Project two", blurb: "What it is, in one line." },
   { title: "Project three", blurb: "What it is, in one line." },
 ];

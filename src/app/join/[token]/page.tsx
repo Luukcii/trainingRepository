@@ -2,6 +2,7 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
 import Link from "next/link";
+import { connection } from "next/server";
 import { isInviteUsable } from "@/lib/invites";
 import { JoinForm } from "@/components/auth/JoinForm";
 
@@ -25,6 +26,7 @@ export default function JoinPage({ params }: PageProps<"/join/[token]">) {
 
 async function InviteCheck({ params }: Pick<PageProps<"/join/[token]">, "params">) {
   const { token } = await params;
+  await connection(); // the expiry check uses "now", so it must run per visit, not at build time
   if (!(await isInviteUsable(token))) {
     return <p className="text-muted">This invite link is used up or expired. Ask Max for a new one.</p>;
   }

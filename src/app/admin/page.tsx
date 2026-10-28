@@ -3,6 +3,7 @@ import { Suspense } from "react";
 import { requireAdmin } from "@/lib/session";
 import { Panel } from "@/components/admin/Panel";
 import { InvitePanel } from "@/components/admin/InvitePanel";
+import { ActivityFeed } from "@/components/admin/ActivityFeed";
 
 export default function AdminPage() {
   return (
@@ -21,7 +22,7 @@ async function Dashboard() {
       <div className="grid gap-4 sm:grid-cols-2">
         <Panel title="Site content">Edit the hero, about, and contact text.</Panel>
         <Panel title="Projects">Add, edit, and reorder work items.</Panel>
-        <Panel title="Messages">Contact form submissions will appear here.</Panel>
+        <ActivityFeed />
         <InvitePanel />
       </div>
     </>

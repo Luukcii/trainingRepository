@@ -14,7 +14,7 @@ export function LoginForm() {
     setPending(true);
     setError("");
     const form = new FormData(event.currentTarget);
-    const { error } = await authClient.signIn.email({
+    const { data, error } = await authClient.signIn.email({
       email: String(form.get("email")),
       password: String(form.get("password")),
     });
@@ -24,7 +24,8 @@ export function LoginForm() {
       setError(error.status === 429 ? "Too many attempts. Wait a minute." : "Invalid email or password.");
       return;
     }
-    router.push("/admin");
+    // Where to go next. Just a convenience: /admin checks the role again on the server.
+    router.push(data.user.role === "admin" ? "/admin" : "/guestbook");
     router.refresh();
   }
 
