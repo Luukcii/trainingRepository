@@ -5,7 +5,10 @@
 import { writeFileSync } from "node:fs";
 import { randomBytes } from "node:crypto";
 import { betterAuth } from "better-auth";
+import { eq } from "drizzle-orm";
 import { authOptions } from "../src/lib/auth-options";
+import { db } from "../src/lib/db";
+import { user } from "../src/lib/db/schema";
 
 const [email, name = "Admin"] = process.argv.slice(2);
 if (!email) {
@@ -24,6 +27,8 @@ const seeder = betterAuth({
 
 async function main() {
   await seeder.api.signUpEmail({ body: { email, name, password } });
+  // Signup can't set a role (input: false), so promote the new account directly.
+  await db.update(user).set({ role: "admin" }).where(eq(user.email, email));
   writeFileSync(".admin-credentials.txt", `email: ${email}\npassword: ${password}\n`);
   console.log(`Admin created for ${email}. Credentials saved to .admin-credentials.txt`);
 }

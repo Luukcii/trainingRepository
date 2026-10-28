@@ -1,5 +1,6 @@
 // Database tables, defined in code. Drizzle turns these into SQL migrations.
 // The first four are the tables Better Auth needs; rateLimit stores login-attempt counts.
+// invite holds Max's sign-up links.
 import { pgTable, text, boolean, timestamp, integer, bigint } from "drizzle-orm/pg-core";
 
 export const user = pgTable("user", {
@@ -8,6 +9,7 @@ export const user = pgTable("user", {
   email: text("email").notNull().unique(),
   emailVerified: boolean("email_verified").notNull().default(false),
   image: text("image"),
+  role: text("role").notNull().default("member"), // "admin" opens /admin; everyone else is "member"
   createdAt: timestamp("created_at").notNull().defaultNow(),
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
 });
@@ -57,4 +59,17 @@ export const rateLimit = pgTable("rate_limit", {
   key: text("key").notNull().unique(),
   count: integer("count").notNull(),
   lastRequest: bigint("last_request", { mode: "number" }).notNull(),
+});
+
+// One row per invite link. We store a hash of the token, like a password: a leaked table can't be used to sign up.
+export const invite = pgTable("invite", {
+  id: text("id").primaryKey(),
+  tokenHash: text("token_hash").notNull().unique(),
+  createdBy: text("created_by")
+    .notNull()
+    .references(() => user.id, { onDelete: "cascade" }),
+  expiresAt: timestamp("expires_at").notNull(),
+  usedAt: timestamp("used_at"),
+  usedBy: text("used_by").references(() => user.id, { onDelete: "set null" }),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
 });

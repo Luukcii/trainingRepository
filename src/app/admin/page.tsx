@@ -1,7 +1,8 @@
 // "/admin" — the dashboard. The session check happens here, on the server, every request.
 import { Suspense } from "react";
-import { requireSession } from "@/lib/session";
+import { requireAdmin } from "@/lib/session";
 import { Panel } from "@/components/admin/Panel";
+import { InvitePanel } from "@/components/admin/InvitePanel";
 
 export default function AdminPage() {
   return (
@@ -12,7 +13,7 @@ export default function AdminPage() {
 }
 
 async function Dashboard() {
-  const user = await requireSession(); // not logged in → redirected to /login
+  const user = await requireAdmin(); // not logged in → /login; logged in but not admin → /
 
   return (
     <>
@@ -21,7 +22,7 @@ async function Dashboard() {
         <Panel title="Site content">Edit the hero, about, and contact text.</Panel>
         <Panel title="Projects">Add, edit, and reorder work items.</Panel>
         <Panel title="Messages">Contact form submissions will appear here.</Panel>
-        <Panel title="Settings">Account and site settings.</Panel>
+        <InvitePanel />
       </div>
     </>
   );
