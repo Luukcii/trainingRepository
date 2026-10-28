@@ -22,6 +22,13 @@
       "when": 1793150674129,
       "tag": "0002_salty_susan_delgado",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1793183730019,
+      "tag": "0003_lame_fabian_cortez",
+      "breakpoints": true
     }
   ]
 }

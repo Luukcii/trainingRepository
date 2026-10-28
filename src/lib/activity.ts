@@ -4,7 +4,16 @@ import { desc, eq } from "drizzle-orm";
 import { db } from "./db";
 import { activity, user } from "./db/schema";
 
-export type ActivityType = "joined" | "signed_in" | "guestbook_post" | "guestbook_delete";
+export type ActivityType =
+  | "joined"
+  | "signed_in"
+  | "guestbook_post"
+  | "guestbook_delete"
+  | "review"
+  | "review_delete"
+  | "friend_request"
+  | "friend_accept"
+  | "message";
 
 export async function logActivity(userId: string, type: ActivityType, summary: string) {
   await db.insert(activity).values({ id: randomUUID(), userId, type, summary });

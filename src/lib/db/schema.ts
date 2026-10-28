@@ -1,7 +1,8 @@
 // Database tables, defined in code. Drizzle turns these into SQL migrations.
 // The first four are the tables Better Auth needs; rateLimit stores login-attempt counts.
-// invite holds Max's sign-up links. guestbookEntry and activity hold what members do.
-import { pgTable, text, boolean, timestamp, integer, bigint, index } from "drizzle-orm/pg-core";
+// invite holds Max's sign-up links. The rest hold what members do: posts, reviews, friends, messages.
+import { sql } from "drizzle-orm";
+import { pgTable, text, boolean, timestamp, integer, bigint, index, uniqueIndex, check } from "drizzle-orm/pg-core";
 
 export const user = pgTable("user", {
   id: text("id").primaryKey(),
@@ -100,4 +101,25 @@ export const activity = pgTable(
     createdAt: timestamp("created_at").notNull().defaultNow(),
   },
   (t) => [index("activity_created_at_idx").on(t.createdAt)],
+);
+
+// One review per member per project. approval is 0–100 (%); the database itself refuses anything else.
+export const review = pgTable(
+  "review",
+  {
+    id: text("id").primaryKey(),
+    userId: text("user_id")
+      .notNull()
+      .references(() => user.id, { onDelete: "cascade" }),
+    projectSlug: text("project_slug").notNull(),
+    approval: integer("approval").notNull(),
+    comment: text("comment").notNull().default(""),
+    createdAt: timestamp("created_at").notNull().defaultNow(),
+    updatedAt: timestamp("updated_at").notNull().defaultNow(),
+  },
+  (t) => [
+    uniqueIndex("review_user_project_idx").on(t.userId, t.projectSlug),
+    index("review_project_idx").on(t.projectSlug),
+    check("review_approval_range", sql`${t.approval} BETWEEN 0 AND 100`),
+  ],
 );
