@@ -1,7 +1,9 @@
 // The outer shell wrapped around every page: <html>, <body>, fonts, global styles.
 import type { Metadata } from "next";
+import { Suspense } from "react";
 import { Geist, Geist_Mono, Metamorphous } from "next/font/google";
 import "./globals.css";
+import { FriendsSidebar } from "@/components/friends/FriendsSidebar"; // shows only for signed-in members
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -31,7 +33,12 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       lang="en"
       className={`${geistSans.variable} ${geistMono.variable} ${metamorphous.variable} h-full antialiased`}
     >
-      <body className="flex min-h-full flex-col">{children}</body>
+      <body className="flex min-h-full flex-col">
+        {children}
+        <Suspense fallback={null}>
+          <FriendsSidebar />
+        </Suspense>
+      </body>
     </html>
   );
 }

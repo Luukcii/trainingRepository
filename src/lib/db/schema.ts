@@ -123,3 +123,53 @@ export const review = pgTable(
     check("review_approval_range", sql`${t.approval} BETWEEN 0 AND 100`),
   ],
 );
+
+// A friend request; status becomes "accepted" when the other person says yes. One row per pair.
+export const friendship = pgTable(
+  "friendship",
+  {
+    id: text("id").primaryKey(),
+    requesterId: text("requester_id")
+      .notNull()
+      .references(() => user.id, { onDelete: "cascade" }),
+    addresseeId: text("addressee_id")
+      .notNull()
+      .references(() => user.id, { onDelete: "cascade" }),
+    status: text("status").notNull().default("pending"), // "pending" | "accepted"
+    createdAt: timestamp("created_at").notNull().defaultNow(),
+  },
+  (t) => [
+    uniqueIndex("friendship_pair_idx").on(t.requesterId, t.addresseeId),
+    index("friendship_addressee_idx").on(t.addresseeId),
+    check("friendship_not_self", sql`${t.requesterId} <> ${t.addresseeId}`),
+  ],
+);
+
+// A direct message between two friends. readAt stays empty until the receiver opens the chat.
+export const message = pgTable(
+  "message",
+  {
+    id: text("id").primaryKey(),
+    fromId: text("from_id")
+      .notNull()
+      .references(() => user.id, { onDelete: "cascade" }),
+    toId: text("to_id")
+      .notNull()
+      .references(() => user.id, { onDelete: "cascade" }),
+    body: text("body").notNull(),
+    createdAt: timestamp("created_at").notNull().defaultNow(),
+    readAt: timestamp("read_at"),
+  },
+  (t) => [
+    index("message_pair_idx").on(t.fromId, t.toId, t.createdAt),
+    index("message_unread_idx").on(t.toId, t.readAt),
+  ],
+);
+
+// When each member's browser last said "still here". Recent = online.
+export const presence = pgTable("presence", {
+  userId: text("user_id")
+    .primaryKey()
+    .references(() => user.id, { onDelete: "cascade" }),
+  lastSeenAt: timestamp("last_seen_at").notNull(),
+});
