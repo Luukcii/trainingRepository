@@ -5,7 +5,8 @@ import Link from "next/link";
 import { SiteHeader } from "@/components/layout/SiteHeader";
 import { SiteFooter } from "@/components/layout/SiteFooter";
 import { ProfileEditor } from "@/components/profile/ProfileEditor";
-import { requireUser } from "@/lib/session";
+import { SignInPrompt } from "@/components/auth/SignInPrompt";
+import { getUser } from "@/lib/session";
 import { getCard } from "@/lib/profiles";
 import { listBlocked } from "@/lib/blocks";
 import { unblockAction } from "@/app/members/[userId]/actions";
@@ -28,7 +29,8 @@ export default function ProfilePage() {
 }
 
 async function ProfileArea() {
-  const me = await requireUser();
+  const me = await getUser();
+  if (!me) return <SignInPrompt />;
   const [card, blocked] = await Promise.all([getCard(me.id), listBlocked(me.id)]);
   if (!card) return null;
 

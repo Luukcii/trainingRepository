@@ -7,7 +7,8 @@ import { SiteHeader } from "@/components/layout/SiteHeader";
 import { SiteFooter } from "@/components/layout/SiteFooter";
 import { MessageForm } from "@/components/messages/MessageForm";
 import { AutoRefresh } from "@/components/ui/AutoRefresh";
-import { requireUser } from "@/lib/session";
+import { SignInPrompt } from "@/components/auth/SignInPrompt";
+import { getUser } from "@/lib/session";
 import { PlayerCard } from "@/components/profile/PlayerCard";
 import { isBlocked } from "@/lib/blocks";
 import { areFriends } from "@/lib/friends";
@@ -34,7 +35,8 @@ export default function MessagesPage({ params }: PageProps<"/messages/[userId]">
 }
 
 async function Chat({ params }: Pick<PageProps<"/messages/[userId]">, "params">) {
-  const me = await requireUser();
+  const me = await getUser();
+  if (!me) return <SignInPrompt />;
   const friend = await getCard((await params).userId);
   // No such person, yourself, or a block either way? Act like the page doesn't exist.
   if (!friend || friend.id === me.id || (await isBlocked(me.id, friend.id))) notFound();

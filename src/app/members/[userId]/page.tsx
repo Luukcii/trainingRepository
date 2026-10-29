@@ -7,7 +7,8 @@ import { SiteHeader } from "@/components/layout/SiteHeader";
 import { SiteFooter } from "@/components/layout/SiteFooter";
 import { PlayerCard } from "@/components/profile/PlayerCard";
 import { ActionButton } from "@/components/ui/ActionButton";
-import { requireUser } from "@/lib/session";
+import { SignInPrompt } from "@/components/auth/SignInPrompt";
+import { getUser } from "@/lib/session";
 import { getCard } from "@/lib/profiles";
 import { relationTo } from "@/lib/friends";
 import { iBlocked, isBlocked } from "@/lib/blocks";
@@ -32,7 +33,8 @@ export default function MemberPage({ params }: PageProps<"/members/[userId]">) {
 }
 
 async function Member({ params }: Pick<PageProps<"/members/[userId]">, "params">) {
-  const me = await requireUser();
+  const me = await getUser();
+  if (!me) return <SignInPrompt />;
   const card = await getCard((await params).userId);
   if (!card) notFound();
 

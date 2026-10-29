@@ -6,7 +6,8 @@ import { SiteHeader } from "@/components/layout/SiteHeader";
 import { SiteFooter } from "@/components/layout/SiteFooter";
 import { PlayerCard } from "@/components/profile/PlayerCard";
 import { ActionButton } from "@/components/ui/ActionButton";
-import { requireUser } from "@/lib/session";
+import { SignInPrompt } from "@/components/auth/SignInPrompt";
+import { getUser } from "@/lib/session";
 import { membersWithRelation } from "@/lib/friends";
 import { looksFor, type Card } from "@/lib/profiles";
 import { acceptFriendAction, removeFriendAction, sendFriendRequestAction } from "./actions";
@@ -32,7 +33,8 @@ export default function FriendsPage() {
 }
 
 async function FriendsLists() {
-  const me = await requireUser();
+  const me = await getUser();
+  if (!me) return <SignInPrompt />;
   const people = await membersWithRelation(me.id);
   const looks = await looksFor(people.map((p) => p.id));
   const cardOf = (p: { id: string; name: string }) => ({ ...p, ...looks.get(p.id)! });
