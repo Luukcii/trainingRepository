@@ -2,10 +2,14 @@
 // Every protected page and action calls one of these, on the server.
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
+import { connection } from "next/server";
 import { auth } from "./auth";
 
 // For pages anyone can see: the user if logged in, otherwise null.
 export async function getUser() {
+  // Wait for a real visitor. Without this, Next.js starts the session lookup while building pages early
+  // (prefetching), cuts it off, and Better Auth logs the error — with the session token in it.
+  await connection();
   const session = await auth.api.getSession({ headers: await headers() });
   if (!session) return null;
   const { id, name, email, role } = session.user;
