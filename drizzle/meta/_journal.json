@@ -36,6 +36,13 @@
       "when": 1793183973668,
       "tag": "0004_wooden_centennial",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1793241516440,
+      "tag": "0005_loose_adam_destine",
+      "breakpoints": true
     }
   ]
 }

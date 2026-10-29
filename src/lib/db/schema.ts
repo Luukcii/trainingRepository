@@ -1,6 +1,6 @@
 // Database tables, defined in code. Drizzle turns these into SQL migrations.
 // The first four are the tables Better Auth needs; rateLimit stores login-attempt counts.
-// invite holds Max's sign-up links. The rest hold what members do: posts, reviews, friends, messages.
+// invite holds Max's sign-up links. The rest hold what members do: posts, reviews, friends, messages, profiles, blocks.
 import { sql } from "drizzle-orm";
 import { pgTable, text, boolean, timestamp, integer, bigint, index, uniqueIndex, check } from "drizzle-orm/pg-core";
 
@@ -145,7 +145,7 @@ export const friendship = pgTable(
   ],
 );
 
-// A direct message between two friends. readAt stays empty until the receiver opens the chat.
+// A direct message between two members. readAt stays empty until the receiver opens the chat.
 export const message = pgTable(
   "message",
   {
@@ -173,3 +173,35 @@ export const presence = pgTable("presence", {
     .references(() => user.id, { onDelete: "cascade" }),
   lastSeenAt: timestamp("last_seen_at").notNull(),
 });
+
+// Each member's player card. banner/emblem/color are keys from src/content/player-card.ts, never raw CSS.
+export const profile = pgTable("profile", {
+  userId: text("user_id")
+    .primaryKey()
+    .references(() => user.id, { onDelete: "cascade" }),
+  callsign: text("callsign").notNull().default(""),
+  bio: text("bio").notNull().default(""),
+  banner: text("banner").notNull().default("stone"),
+  emblem: text("emblem").notNull().default("shield"),
+  color: text("color").notNull().default("gold"),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+});
+
+// blockerId doesn't want contact with blockedId: no requests, no messages, hidden from each other.
+export const block = pgTable(
+  "block",
+  {
+    blockerId: text("blocker_id")
+      .notNull()
+      .references(() => user.id, { onDelete: "cascade" }),
+    blockedId: text("blocked_id")
+      .notNull()
+      .references(() => user.id, { onDelete: "cascade" }),
+    createdAt: timestamp("created_at").notNull().defaultNow(),
+  },
+  (t) => [
+    uniqueIndex("block_pair_idx").on(t.blockerId, t.blockedId),
+    index("block_blocked_idx").on(t.blockedId),
+    check("block_not_self", sql`${t.blockerId} <> ${t.blockedId}`),
+  ],
+);

@@ -13,7 +13,9 @@ export type ActivityType =
   | "review_delete"
   | "friend_request"
   | "friend_accept"
-  | "message";
+  | "message"
+  | "profile_update"
+  | "block";
 
 export async function logActivity(userId: string, type: ActivityType, summary: string) {
   await db.insert(activity).values({ id: randomUUID(), userId, type, summary });

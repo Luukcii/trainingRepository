@@ -1,4 +1,4 @@
-// Direct messages. Callers must check areFriends() first; these functions only touch the table.
+// Direct messages. Callers must check isBlocked() first; these functions only touch the table.
 import { randomUUID } from "node:crypto";
 import { and, count, desc, eq, gt, isNull, or } from "drizzle-orm";
 import { db } from "./db";
