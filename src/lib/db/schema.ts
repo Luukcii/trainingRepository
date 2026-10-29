@@ -2,7 +2,14 @@
 // The first four are the tables Better Auth needs; rateLimit stores login-attempt counts.
 // invite holds Max's sign-up links. The rest hold what members do: posts, reviews, friends, messages, profiles, blocks.
 import { sql } from "drizzle-orm";
-import { pgTable, text, boolean, timestamp, integer, bigint, index, uniqueIndex, check } from "drizzle-orm/pg-core";
+import { pgTable, text, boolean, timestamp, integer, bigint, index, uniqueIndex, check, customType } from "drizzle-orm/pg-core";
+
+// Raw bytes (for pictures). Sent to Postgres in its hex form, read back into a Buffer.
+const bytea = customType<{ data: Buffer; driverData: string | Uint8Array }>({
+  dataType: () => "bytea",
+  toDriver: (value) => "\\x" + value.toString("hex"),
+  fromDriver: (value) => (typeof value === "string" ? Buffer.from(value.replace(/^\\x/, ""), "hex") : Buffer.from(value)),
+});
 
 export const user = pgTable("user", {
   id: text("id").primaryKey(),
@@ -174,7 +181,24 @@ export const presence = pgTable("presence", {
   lastSeenAt: timestamp("last_seen_at").notNull(),
 });
 
+// A member's uploaded picture, already re-drawn by our server as a small WebP. One per member per kind.
+export const upload = pgTable(
+  "upload",
+  {
+    id: text("id").primaryKey(),
+    userId: text("user_id")
+      .notNull()
+      .references(() => user.id, { onDelete: "cascade" }),
+    kind: text("kind").notNull(), // "emblem" | "banner"
+    data: bytea("data").notNull(),
+    size: integer("size").notNull(),
+    createdAt: timestamp("created_at").notNull().defaultNow(),
+  },
+  (t) => [uniqueIndex("upload_user_kind_idx").on(t.userId, t.kind)],
+);
+
 // Each member's player card. banner/emblem/color are keys from src/content/player-card.ts, never raw CSS.
+// An uploaded picture, when set, replaces the preset banner or emblem.
 export const profile = pgTable("profile", {
   userId: text("user_id")
     .primaryKey()
@@ -184,6 +208,8 @@ export const profile = pgTable("profile", {
   banner: text("banner").notNull().default("stone"),
   emblem: text("emblem").notNull().default("shield"),
   color: text("color").notNull().default("gold"),
+  emblemUploadId: text("emblem_upload_id").references(() => upload.id, { onDelete: "set null" }),
+  bannerUploadId: text("banner_upload_id").references(() => upload.id, { onDelete: "set null" }),
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
 });
 

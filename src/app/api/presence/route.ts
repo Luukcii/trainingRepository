@@ -11,7 +11,7 @@ import { hiddenIds } from "@/lib/blocks";
 import { looksFor } from "@/lib/profiles";
 import type { ColorKey, EmblemKey } from "@/content/player-card";
 
-type Person = { id: string; name: string; emblem: EmblemKey; color: ColorKey; unread: number };
+type Person = { id: string; name: string; emblem: EmblemKey; color: ColorKey; emblemImage?: string; unread: number };
 
 export type PresenceResponse =
   | { signedIn: false }
@@ -39,7 +39,7 @@ export async function GET() {
   ]);
   const person = (p: { id: string; name: string }): Person => {
     const { look } = looks.get(p.id)!;
-    return { ...p, emblem: look.emblem, color: look.color, unread: unread.get(p.id) ?? 0 };
+    return { ...p, emblem: look.emblem, color: look.color, emblemImage: look.emblemImage, unread: unread.get(p.id) ?? 0 };
   };
 
   return Response.json({

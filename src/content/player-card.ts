@@ -176,12 +176,19 @@ export type BannerKey = keyof typeof banners;
 export type EmblemKey = keyof typeof emblems;
 export type ColorKey = keyof typeof emblemColors;
 
-export type PlayerCardLook = { banner: BannerKey; emblem: EmblemKey; color: ColorKey };
+// emblemImage/bannerImage: the member's own uploaded picture, which replaces the preset when set.
+export type PlayerCardLook = { banner: BannerKey; emblem: EmblemKey; color: ColorKey; emblemImage?: string; bannerImage?: string };
 export const defaultLook: PlayerCardLook = { banner: "stone", emblem: "shield", color: "gold" };
 
 // The database could hold an old key we later removed; fall back instead of crashing.
-export function safeLook(row: { banner: string; emblem: string; color: string } | null | undefined): PlayerCardLook {
+type LookRow = { banner: string; emblem: string; color: string; emblemUploadId?: string | null; bannerUploadId?: string | null };
+
+export const pictureUrl = (id: string | null | undefined) => (id ? `/api/images/${id}` : undefined);
+
+export function safeLook(row: LookRow | null | undefined): PlayerCardLook {
   return {
+    emblemImage: pictureUrl(row?.emblemUploadId),
+    bannerImage: pictureUrl(row?.bannerUploadId),
     banner: row && row.banner in banners ? (row.banner as BannerKey) : defaultLook.banner,
     emblem: row && row.emblem in emblems ? (row.emblem as EmblemKey) : defaultLook.emblem,
     color: row && row.color in emblemColors ? (row.color as ColorKey) : defaultLook.color,

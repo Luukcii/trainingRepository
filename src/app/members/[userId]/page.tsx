@@ -12,7 +12,7 @@ import { getCard } from "@/lib/profiles";
 import { relationTo } from "@/lib/friends";
 import { iBlocked, isBlocked } from "@/lib/blocks";
 import { acceptFriendAction, removeFriendAction, sendFriendRequestAction } from "@/app/friends/actions";
-import { blockAction, unblockAction } from "./actions";
+import { adminRemovePicturesAction, blockAction, unblockAction } from "./actions";
 
 export const metadata: Metadata = { title: "Member", robots: { index: false } };
 
@@ -75,6 +75,13 @@ async function Member({ params }: Pick<PageProps<"/members/[userId]">, "params">
           </>
         )}
       </div>
+
+      {me.role === "admin" && !isMe && (card.look.emblemImage || card.look.bannerImage) && (
+        <div className="flex items-center justify-between rounded-lg border border-line p-4 text-sm">
+          <span className="text-muted">Admin: this member uploaded their own pictures.</span>
+          <ActionButton action={adminRemovePicturesAction} field="userId" value={card.id} label="Remove pictures" danger />
+        </div>
+      )}
     </div>
   );
 }

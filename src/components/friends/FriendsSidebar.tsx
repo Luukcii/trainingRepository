@@ -143,7 +143,7 @@ function Toasts({ toasts, onDismiss }: { toasts: Toast[]; onDismiss: (key: numbe
     <ul aria-live="polite" className="flex w-60 flex-col gap-2">
       {toasts.map((t) => (
         <li key={t.key} className="flex items-center gap-2 rounded-lg border border-line bg-background p-2 text-sm shadow-lg">
-          {t.person ? <Emblem emblem={t.person.emblem} color={t.person.color} className="h-7 w-7 shrink-0" /> : <span className="px-1">👋</span>}
+          {t.person ? <Emblem emblem={t.person.emblem} color={t.person.color} image={t.person.emblemImage} className="h-7 w-7 shrink-0" /> : <span className="px-1">👋</span>}
           <Link href={t.href} onClick={() => onDismiss(t.key)} className="flex-1 hover:underline">
             {t.text}
           </Link>
@@ -164,7 +164,7 @@ function PersonLink({ person, active, children }: { person: Person; active: bool
         prefetch={false}
         className={`flex items-center gap-2 rounded-md px-2 py-1.5 text-sm hover:bg-line ${active ? "bg-line" : ""}`}
       >
-        <Emblem emblem={person.emblem} color={person.color} className="h-6 w-6 shrink-0" />
+        <Emblem emblem={person.emblem} color={person.color} image={person.emblemImage} className="h-6 w-6 shrink-0" />
         <span className="flex-1 truncate">{person.name}</span>
         {person.unread > 0 && <Badge n={person.unread} />}
         {children}

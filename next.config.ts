@@ -35,6 +35,11 @@ const nextConfig: NextConfig = {
   cacheComponents: true,
   partialPrefetching: true,
   poweredByHeader: false, // don't advertise what we run on
+  experimental: {
+    // Picture uploads go through Server Actions, which allow 1 MB by default. 4 MB fits a 3 MB photo plus
+    // the form around it, and stays under Vercel's 4.5 MB request limit.
+    serverActions: { bodySizeLimit: "4mb" },
+  },
   async headers() {
     return [{ source: "/:path*", headers: securityHeaders }];
   },
