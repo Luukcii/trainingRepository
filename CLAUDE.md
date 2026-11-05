@@ -138,7 +138,11 @@ src/
     sections/          # Hero, About, Work, Contact
     admin/             # LoginForm, SignOutButton, Panel (control-surface slot)
     ui/                # Small reusable pieces (Section)
+    war/               # Faction war: rulebook layout, pop-ups (ExplainProvider/Term), map/
+  content/war/         # Faction war rules as data: glossary, player + full rulebooks, map territories
   lib/
+    war/               # War state (DB or example data), record.ts (every change + log line)
+    discord/           # Bot: signature check, command list, command handling
     auth-options.ts    # Shared auth settings (signup off, rate limit)
     auth.ts            # Better Auth server instance
     auth-client.ts     # Better Auth browser client
@@ -214,4 +218,5 @@ scripts/seed-admin.ts  # Creates the admin account
 - **Vercel env vars (production only):** `DATABASE_URL` (sensitive, app_user), `BETTER_AUTH_SECRET` (sensitive, differs from local), `BETTER_AUTH_URL` (the live URL), `RESEND_API_KEY` (sensitive, sending-only). Sensitive values can't be read back — to change one, overwrite it. Preview deploys have no env vars yet (we don't use branches); add them when we do.
 - **Resend:** SDK installed, `src/lib/email.ts` ready, MCP connected and verified. Free plan: 100 emails/day, 3,000/month, 3 domains. `RESEND_API_KEY` is a **sending-only** key (verified: `GET /domains` → 401 `restricted_api_key`), in `.env.local` and on Vercel (production, sensitive). If it's ever replaced, verify the new one is restricted the same way before copying it to Vercel; never put a full-access key in the app.
 - **Member pictures:** stored in Postgres (`upload` table, bytea), not R2. sharp re-encodes every upload to a small WebP (emblem 256², banner 1024×256, ~10–60 KB), served members-only at `/api/images/<id>`. Max 3 MB in, 10 uploads/hour. Fine for a small site; move to R2 if pictures grow (Neon free tier is 0.5 GB).
+- **Faction war (HAFW):** `/war/rules`, `/war/rules/full`, `/war/map`. Rules come from Max's claude.ai artifacts; the full Hardset Register is still missing, so gaps are marked in the books. The map shows example data until the `war_*` tables have a war in them. Discord bot = `/api/discord/interactions` (HTTP interactions, no extra server). Needs migration 0007, Vercel env `DISCORD_PUBLIC_KEY` + `DISCORD_GUILD_ID` (+ optional `WAR_STAFF_ROLE_ID`), and `DISCORD_BOT_TOKEN`/`DISCORD_APPLICATION_ID`/`DISCORD_GUILD_ID` in `.env.tools` for `npm run discord:register`. The bot token never goes to Vercel. Steps: `docs/faction-war-bot.md`.
 - **Email domain:** none. `*.vercel.app` can't hold DNS records, so Resend can't verify it. When the owner gets a domain: create a Resend domain on a subdomain (e.g. `mail.example.com`) via MCP, add its SPF/DKIM/MX records — if DNS is at Vercel, via Resend's **Auto configure** or Vercel's DNS API — verify, then update `EMAIL_FROM` and restrict the app key to that domain. Adding a domain needs the owner's OK (cost).

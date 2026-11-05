@@ -50,6 +50,13 @@
       "when": 1793243201378,
       "tag": "0006_fuzzy_sandman",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1793916134707,
+      "tag": "0007_faction_war",
+      "breakpoints": true
     }
   ]
 }

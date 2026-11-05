@@ -2,7 +2,7 @@
 // The first four are the tables Better Auth needs; rateLimit stores login-attempt counts.
 // invite holds Max's sign-up links. The rest hold what members do: posts, reviews, friends, messages, profiles, blocks.
 import { sql } from "drizzle-orm";
-import { pgTable, text, boolean, timestamp, integer, bigint, index, uniqueIndex, check, customType } from "drizzle-orm/pg-core";
+import { pgTable, text, boolean, timestamp, integer, bigint, jsonb, index, uniqueIndex, check, customType } from "drizzle-orm/pg-core";
 
 // Raw bytes (for pictures). Sent to Postgres in its hex form, read back into a Buffer.
 const bytea = customType<{ data: Buffer; driverData: string | Uint8Array }>({
@@ -231,3 +231,82 @@ export const block = pgTable(
     check("block_not_self", sql`${t.blockerId} <> ${t.blockedId}`),
   ],
 );
+
+// ── Faction war ────────────────────────────────────────────────────────────────────────────────
+// The live record of the war. The Discord bot writes these; the war map reads them.
+// Kingdom and territory ids are the ones in src/content/war/map.ts.
+
+// One row per kingdom: its treasury and scores.
+export const warFaction = pgTable("war_faction", {
+  id: text("id").primaryKey(), // "svaroth" | "kogahara" | "valdyruus"
+  gold: bigint("gold", { mode: "number" }).notNull().default(75000),
+  troops: integer("troops").notNull().default(0),
+  stone: integer("stone").notNull().default(0),
+  lumber: integer("lumber").notNull().default(0),
+  faith: integer("faith").notNull().default(0),
+  fame: integer("fame").notNull().default(0),
+  trade: bigint("trade", { mode: "number" }).notNull().default(0), // Black Market sales toward the Trade victory
+  ap: integer("ap").notNull().default(0),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+});
+
+// One row per territory: who holds it now and what's on it.
+export const warTerritory = pgTable(
+  "war_territory",
+  {
+    id: text("id").primaryKey(),
+    owner: text("owner"), // a kingdom id, or null for neutral ground
+    tier: text("tier").notNull().default("town-hall"),
+    troops: integer("troops").notNull().default(0),
+    buildings: jsonb("buildings").$type<string[]>().notNull().default([]),
+    obstacles: jsonb("obstacles").$type<string[]>().notNull().default([]),
+    updatedAt: timestamp("updated_at").notNull().defaultNow(),
+  },
+  (t) => [check("war_territory_tier", sql`${t.tier} in ('town-hall', 'castle', 'fortress')`)],
+);
+
+// Envoys, Attacks, ambushes and raids. "secret" ones never reach the public map.
+export const warMovement = pgTable(
+  "war_movement",
+  {
+    id: text("id").primaryKey(), // short code players type in Discord, e.g. "K7Q2M"
+    kind: text("kind").notNull(),
+    faction: text("faction").notNull(),
+    fromId: text("from_id").notNull(),
+    toId: text("to_id").notNull(),
+    cargo: text("cargo").notNull().default(""),
+    troops: integer("troops").notNull().default(0),
+    departsAt: timestamp("departs_at").notNull().defaultNow(),
+    arrivesAt: timestamp("arrives_at").notNull(),
+    status: text("status").notNull().default("moving"),
+    secret: boolean("secret").notNull().default(false),
+    createdBy: text("created_by").notNull(), // Discord user id of whoever recorded it
+    createdAt: timestamp("created_at").notNull().defaultNow(),
+  },
+  (t) => [
+    index("war_movement_status_idx").on(t.status),
+    check("war_movement_kind", sql`${t.kind} in ('envoy', 'attack', 'ambush', 'raid')`),
+    check("war_movement_status", sql`${t.status} in ('moving', 'arrived', 'won', 'lost', 'cancelled')`),
+  ],
+);
+
+// The war's logbook: every change the bot records, newest first on the map.
+export const warEvent = pgTable(
+  "war_event",
+  {
+    id: text("id").primaryKey(),
+    at: timestamp("at").notNull().defaultNow(),
+    faction: text("faction"),
+    kind: text("kind").notNull(),
+    summary: text("summary").notNull(),
+    actor: text("actor").notNull(), // Discord user id
+    secret: boolean("secret").notNull().default(false),
+  },
+  (t) => [index("war_event_at_idx").on(t.at)],
+);
+
+// Small settings, like the current war day.
+export const warSetting = pgTable("war_setting", {
+  key: text("key").primaryKey(),
+  value: text("value").notNull(),
+});
