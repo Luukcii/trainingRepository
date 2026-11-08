@@ -279,6 +279,7 @@ export const techRules: Rulebook = {
             "A loss: all troops spent are lost, the defender keeps 25% of them (75% on a Samurai home territory), and the attacker is locked out of that territory for 24 hours.",
             "[[momentum|Momentum]]: after a win, the next Attack on that territory that day costs no AP.",
             "Crossing water needs a Castle or higher, except for the Vikings, who cross from a Town Hall.",
+            "Sea Attacks: Vikings from a Town Hall pay 2 AP and play Breach until they have 2 wins on that territory; from a Castle or Fortress, 1 AP and Breach until their first win. Other kingdoms pay 2 AP; against a Castle or Fortress they play Breach until their first win, against a Town Hall normal games. A Store match downgrade can lower the Breach games.",
             "[[aegis|Aegis]] adds one win to what's needed while it lasts; [[hachiman-toll|Hachiman's Toll]] makes Attacks from a territory cost 50% more troops.",
             "A Svaroth capture gives the new owner 50 Faith; a Kōgahara home territory that holds off an Attack earns 50 Fame (Bushido).",
           ],
@@ -579,7 +580,6 @@ export const techRules: Rulebook = {
           items: [
             "Names for the shrine defender's role and the Mercenaries' Fortune role, and any extra prizes for the winners (Max announces them when he presents the war).",
             "How the Pope is chosen, and any other powers.",
-            "Sea Attacks: extra AP and Breach games were set (decision 50) when an Attack was a three-game series. How they apply now that each Attack is one game isn't settled.",
           ],
         },
       ],
