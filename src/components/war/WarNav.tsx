@@ -6,6 +6,7 @@ const tabs = [
   { key: "guide", href: "/war/rules", label: "Player's guide" },
   { key: "full", href: "/war/rules/full", label: "Full rulebook" },
   { key: "map", href: "/war/map", label: "War map" },
+  { key: "staff", href: "/war/staff", label: "Staff" },
 ] as const;
 
 export function WarNav({ current }: { current: (typeof tabs)[number]["key"] }) {

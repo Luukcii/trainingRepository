@@ -4,7 +4,7 @@
 //   a war player, no faction → swear to this faction (once)
 //   this faction's player    → the kingdom's own numbers, land, Envoys and news
 //   another faction's player → nothing of this faction's (fog of war)
-//   staff (site admin)       → everything
+//   staff (admin, mod, tech) → everything ("mod mode")
 import type { Metadata } from "next";
 import Link from "next/link";
 import { Suspense } from "react";
@@ -17,6 +17,7 @@ import { FactionDashboard } from "@/components/war/FactionDashboard";
 import { factionBySlug, factionIds, factions, type FactionId } from "@/content/war/map";
 import { getWarUser } from "@/lib/session";
 import { loadWarState } from "@/lib/war/state";
+import { isWarStaffRole, roleTitle } from "@/lib/war/roles";
 import { chooseFactionAction } from "./actions";
 
 export const metadata: Metadata = { title: "Faction War — Faction", robots: { index: false } };
@@ -64,9 +65,12 @@ async function FactionBody({ params }: Pick<PageProps<"/war/[faction]">, "params
             Log in
           </Link>
         </section>
-      ) : me.role === "admin" ? (
+      ) : isWarStaffRole(me.role) ? (
         <>
-          <p className="text-sm text-muted">Staff view: you can see every faction.</p>
+          <p className="rounded-md border border-amber-500/50 bg-amber-500/10 px-3 py-2 text-sm">
+            <strong>Mod mode</strong> ({roleTitle[me.role]}): you can see every faction. What you see here is secret from the
+            other kingdoms.
+          </p>
           <FactionDashboard faction={f} state={await loadWarState("all")} />
         </>
       ) : me.role !== "player" ? (

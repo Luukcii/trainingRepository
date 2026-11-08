@@ -20,7 +20,8 @@ export type ActivityType =
   | "picture_removed"
   | "wall_post"
   | "wall_comment"
-  | "song";
+  | "song"
+  | "war_role";
 
 export async function logActivity(userId: string, type: ActivityType, summary: string) {
   await db.insert(activity).values({ id: randomUUID(), userId, type, summary });

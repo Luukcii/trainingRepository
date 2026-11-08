@@ -5,12 +5,13 @@
 //   3. On that page they enter their Discord username and God's password, and may choose their own.
 //   4. Lost password? /war password: God proves who they are again and gives a new one.
 import { randomInt } from "node:crypto";
-import { and, eq, isNull } from "drizzle-orm";
+import { and, eq, inArray, isNull } from "drizzle-orm";
 import { db } from "@/lib/db";
 import { user } from "@/lib/db/schema";
 import { auth } from "@/lib/auth";
 import { signupAuth } from "@/lib/signup-auth";
 import { factionIds, type FactionId } from "@/content/war/map";
+import { warAccountRoles } from "./roles";
 
 // Discord usernames are already lowercase a–z, 0–9, "_" and "."; older accounts may still carry "#1234".
 function cleanUsername(raw: string) {
@@ -68,7 +69,7 @@ export async function resetWarPassword(discordId: string): Promise<{ username: s
   const [row] = await db
     .select({ id: user.id, username: user.username })
     .from(user)
-    .where(and(eq(user.discordId, discordId), eq(user.role, "player")))
+    .where(and(eq(user.discordId, discordId), inArray(user.role, [...warAccountRoles]))) // players, mods and techs
     .limit(1);
   if (!row?.username) return null;
   const password = godPassword();

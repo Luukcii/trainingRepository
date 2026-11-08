@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { factions, factionIds, type FactionId } from "@/content/war/map";
 import { getWarUser } from "@/lib/session";
+import { isWarStaffRole, roleTitle } from "@/lib/war/roles";
 import { WarSignOutButton } from "./WarSignOutButton";
 
 export async function WarAccountLine() {
@@ -26,8 +27,13 @@ export async function WarAccountLine() {
               {faction.people}
             </Link>
           </>
-        ) : me.role === "admin" ? (
-          " · staff"
+        ) : isWarStaffRole(me.role) ? (
+          <>
+            {" · "}
+            <Link href={`/war/staff/${me.id}`} className="text-[#d4a017] underline">
+              {roleTitle[me.role]} · mod mode
+            </Link>
+          </>
         ) : me.role === "player" ? (
           " · no faction yet"
         ) : null}
