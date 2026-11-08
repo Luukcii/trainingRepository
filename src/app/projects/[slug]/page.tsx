@@ -28,6 +28,11 @@ export default async function ProjectPage({ params }: PageProps<"/projects/[slug
         <Link href="/#work" className="text-sm text-muted hover:text-foreground">← All projects</Link>
         <h1 className="mt-4 text-3xl font-semibold tracking-tight">{project.title}</h1>
         <p className="mt-2 mb-10 text-muted">{project.blurb}</p>
+        {project.href && (
+          <Link href={project.href} className="mb-10 -mt-6 inline-block rounded-md bg-foreground px-4 py-2 text-sm font-medium text-background">
+            Open {project.title} →
+          </Link>
+        )}
         <Suspense fallback={<p className="text-muted">Loading reviews…</p>}>
           <ProjectReviews slug={project.slug} />
         </Suspense>
