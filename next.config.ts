@@ -11,6 +11,8 @@ const csp = [
   "style-src 'self' 'unsafe-inline'",
   "img-src 'self' blob: data:",
   "font-src 'self'",
+  // Profile songs: only YouTube's privacy-mode player may be embedded. No other site can load in a frame here.
+  "frame-src https://www.youtube-nocookie.com",
   "connect-src 'self'",
   "object-src 'none'",
   "base-uri 'self'",

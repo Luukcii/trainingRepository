@@ -6,6 +6,7 @@ import { requireUser } from "@/lib/session";
 import { saveProfile } from "@/lib/profiles";
 import { MAX_UPLOAD_BYTES, NotAPicture, processPicture, removePicture, savePicture, uploadsLastHour } from "@/lib/uploads";
 import { logActivity } from "@/lib/activity";
+import { parseYouTubeId, removeSong, setSong } from "@/lib/songs";
 import { banners, emblemColors, emblems, type BannerKey, type ColorKey, type EmblemKey } from "@/content/player-card";
 
 // Only keys from our own lists get through, so the page can never be fed someone's CSS.
@@ -61,5 +62,26 @@ export async function uploadPictureAction(_prev: PictureState, form: FormData): 
 export async function removePictureAction(form: FormData) {
   const me = await requireUser();
   await removePicture(me.id, Kind.parse(form.get("kind")));
+  refresh();
+}
+
+export type SongState = { error: string } | { ok: true } | null;
+
+export async function saveSongAction(_prev: SongState, form: FormData): Promise<SongState> {
+  const me = await requireUser();
+  const link = z.string().max(300).safeParse(form.get("link"));
+  // Keep only the video id. Whatever else was pasted never reaches the page.
+  const videoId = link.success ? parseYouTubeId(link.data) : null;
+  if (!videoId) return { error: "That doesn't look like a YouTube link. Copy it from the Share button on YouTube." };
+
+  await setSong(me.id, videoId);
+  await logActivity(me.id, "song", "changed their profile song");
+  refresh();
+  return { ok: true };
+}
+
+export async function removeSongAction() {
+  const me = await requireUser();
+  await removeSong(me.id);
   refresh();
 }

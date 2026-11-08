@@ -9,24 +9,26 @@ import { onlineIds, touchPresence } from "@/lib/presence";
 import { unreadBySender } from "@/lib/messages";
 import { hiddenIds } from "@/lib/blocks";
 import { looksFor } from "@/lib/profiles";
+import { othersActivityOnMyWall } from "@/lib/wall";
 import type { ColorKey, EmblemKey } from "@/content/player-card";
 
 type Person = { id: string; name: string; emblem: EmblemKey; color: ColorKey; emblemImage?: string; unread: number };
 
 export type PresenceResponse =
   | { signedIn: false }
-  | { signedIn: true; pending: number; friends: (Person & { online: boolean })[]; others: Person[] };
+  | { signedIn: true; myId: string; pending: number; wall: number; friends: (Person & { online: boolean })[]; others: Person[] };
 
 export async function GET() {
   const user = await getUser();
   if (!user) return Response.json({ signedIn: false } satisfies PresenceResponse);
 
   await touchPresence(user.id);
-  const [friends, unread, pending, hidden] = await Promise.all([
+  const [friends, unread, pending, hidden, wall] = await Promise.all([
     listFriends(user.id),
     unreadBySender(user.id),
     pendingRequestCount(user.id),
     hiddenIds(user.id),
+    othersActivityOnMyWall(user.id),
   ]);
   const friendIds = new Set(friends.map((f) => f.id));
   const otherIds = [...unread.keys()].filter((id) => !friendIds.has(id) && !hidden.has(id));
@@ -44,7 +46,9 @@ export async function GET() {
 
   return Response.json({
     signedIn: true,
+    myId: user.id,
     pending,
+    wall,
     friends: friends.map((f) => ({ ...person(f), online: online.has(f.id) })),
     others: others.map(person),
   } satisfies PresenceResponse);

@@ -6,10 +6,13 @@ import { notFound } from "next/navigation";
 import { SiteHeader } from "@/components/layout/SiteHeader";
 import { SiteFooter } from "@/components/layout/SiteFooter";
 import { PlayerCard } from "@/components/profile/PlayerCard";
+import { ProfileSong } from "@/components/profile/ProfileSong";
+import { Wall } from "@/components/wall/Wall";
 import { ActionButton } from "@/components/ui/ActionButton";
 import { SignInPrompt } from "@/components/auth/SignInPrompt";
 import { getUser } from "@/lib/session";
 import { getCard } from "@/lib/profiles";
+import { getSong } from "@/lib/songs";
 import { relationTo } from "@/lib/friends";
 import { iBlocked, isBlocked } from "@/lib/blocks";
 import { acceptFriendAction, removeFriendAction, sendFriendRequestAction } from "@/app/friends/actions";
@@ -50,13 +53,17 @@ async function Member({ params }: Pick<PageProps<"/members/[userId]">, "params">
   }
 
   const isMe = card.id === me.id;
-  const { relation, friendshipId } = isMe ? { relation: "none", friendshipId: null } : await relationTo(me.id, card.id);
+  const [{ relation, friendshipId }, song] = await Promise.all([
+    isMe ? { relation: "none", friendshipId: null } : relationTo(me.id, card.id),
+    getSong(card.id),
+  ]);
 
   return (
     <div className="mt-6 flex flex-col gap-6">
       <h1 className="sr-only">{card.name}</h1>
       <PlayerCard name={card.name} callsign={card.callsign} look={card.look} />
       {card.bio && <p className="whitespace-pre-wrap break-words">{card.bio}</p>}
+      {song && <ProfileSong videoId={song} name={card.name} />}
 
       <div className="flex flex-wrap items-center gap-2">
         {isMe ? (
@@ -84,6 +91,8 @@ async function Member({ params }: Pick<PageProps<"/members/[userId]">, "params">
           <ActionButton action={adminRemovePicturesAction} field="userId" value={card.id} label="Remove pictures" danger />
         </div>
       )}
+
+      <Wall me={me} owner={card} />
     </div>
   );
 }

@@ -333,3 +333,6 @@ export const warJoinToken = pgTable(
   },
   (t) => [index("war_join_token_discord_idx").on(t.discordId)],
 );
+
+// Profile walls and songs live in their own file.
+export * from "./social-schema";

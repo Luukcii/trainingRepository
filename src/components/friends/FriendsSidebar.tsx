@@ -113,14 +113,17 @@ export function FriendsSidebar() {
         Find friends
         {data.pending > 0 && <span className="text-muted">{data.pending} request{data.pending === 1 ? "" : "s"}</span>}
       </Link>
+      <Link href={`/members/${data.myId}`} className="border-t border-line px-4 py-3 text-sm hover:bg-line">
+        Your wall
+      </Link>
       <Link href="/profile" className="border-t border-line px-4 py-3 text-sm hover:bg-line">
-        Your player card
+        Your player card &amp; song
       </Link>
     </aside>
   );
 }
 
-// Compare this check with the last one. More unread from someone, or a new friend request = a pop-up.
+// Compare this check with the last one. More unread from someone, a new friend request, or a new wall post = a pop-up.
 // The first check after the page loads only sets the baseline, so old messages don't pop up again.
 let toastKey = 0;
 function whatsNew(before: Data | null, now: Data, pathname: string): Toast[] {
@@ -134,6 +137,9 @@ function whatsNew(before: Data | null, now: Data, pathname: string): Toast[] {
     }
   }
   if (now.pending > before.pending) out.push({ key: ++toastKey, text: "New friend request", href: "/friends" });
+  if (now.wall > before.wall && pathname !== `/members/${now.myId}`) {
+    out.push({ key: ++toastKey, text: "New post on your wall", href: `/members/${now.myId}` });
+  }
   return out;
 }
 

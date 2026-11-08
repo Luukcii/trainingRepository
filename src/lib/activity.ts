@@ -17,7 +17,10 @@ export type ActivityType =
   | "profile_update"
   | "block"
   | "upload"
-  | "picture_removed";
+  | "picture_removed"
+  | "wall_post"
+  | "wall_comment"
+  | "song";
 
 export async function logActivity(userId: string, type: ActivityType, summary: string) {
   await db.insert(activity).values({ id: randomUUID(), userId, type, summary });
