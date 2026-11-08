@@ -6,7 +6,7 @@ import { factionIds, factions, findTerritory, matchTerritory, territories, type 
 import { findTerm, glossary } from "@/content/war/glossary";
 import { stripMarkup } from "@/lib/war/markup";
 import { isAnnouncement, loadWarState } from "@/lib/war/state";
-import { createWarAccount, factionOfDiscordUser, resetWarPassword } from "@/lib/war/accounts";
+import { createWarAccount, factionOfDiscordUser, isSiteWarStaff, resetWarPassword } from "@/lib/war/accounts";
 import { god } from "./voice";
 import { tierNames, type Tier, type WarViewer } from "@/lib/war/types";
 import {
@@ -84,12 +84,15 @@ function reader(options: Option[] = []) {
   };
 }
 
-function isStaff(member: Interaction["member"]): boolean {
+// Staff = Discord admins / "Manage Server", the optional WAR_STAFF_ROLE_ID role, or anyone Max made a Mod or
+// Tech on the site (/admin). Checked here on our server every time.
+async function isStaff(member: Interaction["member"]): Promise<boolean> {
   if (!member) return false;
   const perms = BigInt(member.permissions ?? "0");
   if ((perms & ADMINISTRATOR) !== BigInt(0) || (perms & MANAGE_GUILD) !== BigInt(0)) return true;
   const staffRole = process.env.WAR_STAFF_ROLE_ID;
-  return Boolean(staffRole && member.roles?.includes(staffRole));
+  if (staffRole && member.roles?.includes(staffRole)) return true;
+  return isSiteWarStaff(member.user.id);
 }
 
 export async function handleInteraction(interaction: Interaction) {
@@ -108,7 +111,7 @@ export async function handleInteraction(interaction: Interaction) {
   try {
     if (interaction.data.name === "war") return await publicCommand(sub, interaction.member);
     if (interaction.data.name === "warstaff") {
-      if (!isStaff(interaction.member)) return reply(god.staffOnly, { private: true });
+      if (!(await isStaff(interaction.member))) return reply(god.staffOnly, { private: true });
       return await staffCommand(sub, interaction.member!.user.id);
     }
     return reply(god.unknown, { private: true });
@@ -138,7 +141,7 @@ const notLinked = () => god.notLinked(`${siteUrl()}/war`);
 
 async function viewerFor(member: Interaction["member"]): Promise<WarViewer> {
   if (!member) return null;
-  if (isStaff(member)) return "all";
+  if (await isStaff(member)) return "all";
   return factionOfDiscordUser(member.user.id);
 }
 

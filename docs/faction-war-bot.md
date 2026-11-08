@@ -84,6 +84,6 @@ Players link Discord through `/war join`, so God knows which kingdom each Discor
 
 - **Signature check**: every request must be signed by Discord, and less than 5 minutes old. Forged or replayed requests get 401.
 - **One server only**: commands from any other server are refused, even if someone copies the bot.
-- **Staff checked on our server**: Discord hides `/warstaff` from non-staff, and the site checks again.
+- **Staff checked on our server**: Discord hides `/warstaff` from non-staff, and the site checks again. Staff = Discord admins / Manage Server, the `WAR_STAFF_ROLE_ID` role, or anyone Max made a Mod or Tech on `/admin`. A site Mod without Manage Server won't *see* `/warstaff` until Max allows it for them in Discord: Server Settings → Integrations → God → `/warstaff`.
 - **No pings**: text typed into commands can't trigger `@everyone` when the bot repeats it.
 - **Least privilege**: the website holds only the public key; the bot token stays in `.env.tools`.

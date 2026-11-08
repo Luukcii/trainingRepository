@@ -9,7 +9,7 @@ export type WarAccountRole = (typeof warAccountRoles)[number];
 
 export const roleTitle: Record<string, string> = { admin: "Admin", mod: "Mod", tech: "Tech", player: "Player" };
 
-// Sees every faction on the site. God's /warstaff rights still come from Discord roles (see lib/discord/handle.ts).
+// Sees every faction on the site, and counts as staff for God's /warstaff commands (lib/discord/handle.ts).
 export function isWarStaffRole(role: string | null | undefined) {
   return role === "admin" || (warStaffRoles as readonly string[]).includes(role ?? "");
 }

@@ -11,7 +11,7 @@ import { user } from "@/lib/db/schema";
 import { auth } from "@/lib/auth";
 import { signupAuth } from "@/lib/signup-auth";
 import { factionIds, type FactionId } from "@/content/war/map";
-import { warAccountRoles } from "./roles";
+import { isWarStaffRole, warAccountRoles } from "./roles";
 
 // Discord usernames are already lowercase a–z, 0–9, "_" and "."; older accounts may still carry "#1234".
 function cleanUsername(raw: string) {
@@ -95,4 +95,10 @@ export async function factionOfDiscordUser(discordId: string): Promise<FactionId
   const [row] = await db.select({ warFaction: user.warFaction }).from(user).where(eq(user.discordId, discordId)).limit(1);
   const f = row?.warFaction;
   return f && factionIds.includes(f as FactionId) ? (f as FactionId) : null;
+}
+
+// For God: is this Discord account a mod or tech (or Max) on the site? Max sets these roles on /admin.
+export async function isSiteWarStaff(discordId: string): Promise<boolean> {
+  const [row] = await db.select({ role: user.role }).from(user).where(eq(user.discordId, discordId)).limit(1);
+  return isWarStaffRole(row?.role);
 }
