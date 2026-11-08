@@ -18,7 +18,8 @@ The project's memory of what Max knows. Claude reads this at the start of every 
 ## How Max learns
 *Notes on what works for him: analogies that clicked, pace, what to avoid. Fill in as we go.*
 
-- 
+- Visual and design-driven: directs by describing what he sees ("smush it", "slightly behind the a"). Iterate by showing, not explaining.
+- Picks up vocabulary fast and reuses it: "kerning" one message after hearing it. Also coins his own names ("the woven" for the gold vines); map them to the real term (filigree) rather than correcting.
 
 ---
 
@@ -29,7 +30,7 @@ The project's memory of what Max knows. Claude reads this at the start of every 
 |---|---|---|---|
 | What a terminal/console is | — | | |
 | Running a command; reading output | — | | |
-| Folders & paths (`cd`, current directory) | — | | |
+| Folders & paths (`cd`, current directory) | intro | 2026-11-05 | Drawers-in-drawers analogy; found Github folder in File Explorer himself. Typed first `cd` into a browser search, then found the VS Code terminal via the menu |
 | PATH (how the terminal finds programs) | — | | |
 | Node.js (JavaScript outside the browser) | — | | |
 | npm & `package.json` (dependencies, scripts) | — | | |
@@ -68,6 +69,10 @@ The project's memory of what Max knows. Claude reads this at the start of every 
 | Tailwind utility classes | — | | |
 | Responsive design (mobile first) | — | | |
 | Design consistency (spacing, color, type scale) | — | | |
+| SVG (drawing with coordinates) | intro | 2026-11-05 | Faction War title is hand-drawn SVG: pen moves as x/y points |
+| Tracking (spacing all letters) | intro | 2026-11-05 | "Smush it closer together" → negative tracking |
+| Kerning (spacing one letter pair) | understood | 2026-11-06 | Used it unprompted, one message after first hearing it: "the kerning of the F closer to the a" |
+| Paint order (drawn later = on top) | intro | 2026-11-06 | Asked for the F's vines "slightly behind the a"; layers-of-paper analogy |
 
 ### 5. UI surfaces
 | Concept | Status | Date | Notes |
@@ -133,6 +138,19 @@ The project's memory of what Max knows. Claude reads this at the start of every 
 
 ## Session log
 *Newest first. Date, what we covered, what landed, what to revisit.*
+
+- **2026-11-08 (Max, session 10)**: Max (calls Claude "Architect") wants to start a YouTube channel "from our notes", but no channel notes exist here, in memory, or in the Freebuff/Black Citadel archives (probably a ChatGPT chat). Asked him to describe it. First he asked whether microsoft/VibeVoice suits automated voices. Verdict: the repo is genuine (Microsoft, MIT), but its long-form TTS code was pulled 2025-09-05 for misuse, it's marked "research only, not for commercial use", and his PC (i5-4590, AMD GPU, no NVIDIA) can't run it well. Recommended Kokoro (Apache-2.0, runs on CPU), with Chatterbox (MIT, voice cloning, slow on CPU) and Piper (GPL, fast, robotic) as backups. Introduced: software licenses (what you're allowed to do), unofficial forks as a supply-chain risk. Nothing marked understood. No website work.
+  - Then Max sent the Kokoro-82M Hugging Face page. Vetted it: official author (hexgrad), Apache-2.0, ~12M downloads, trained on permissive audio, 54 voices; the page itself warns about scam "kokoro" websites. Introduced: file fingerprints (SHA256) to prove a download is the real file, and that `.pth` model files can carry code (only load them from the official source). Pointed him to the browser demo to pick a voice first. Local install still needs a real Python (only the Microsoft Store shortcut is on the PC) plus PyTorch. Asked before installing.
+  - Max said "go" and set names: call him **Maximus**; Claude = Architect, ChatGPT = Archivist. Installed Python 3.12 (winget, user scope; winget verified the installer hash, a live example of fingerprints). Made `C:\Users\User\Github\Voice Studio` (not a git repo) with a `.venv` (virtual environment = sealed toolbox), CPU PyTorch, Kokoro 0.9.4 and `say.py` (text → .wav; refuses the model if its SHA256 doesn't match; it matched). A spaCy helper download hit a GitHub 504 and installed on retry. First clips: `clips/test_af_heart|am_michael|bm_george.wav` (~30 s to make each on the i5). Waiting on: Max picks a voice, describes the channel, answers "what would say.py do with a tampered file?".
+  - Max asked for Onyx + Lewis: made `test_am_onyx.wav` / `test_bm_lewis.wav`; told him Kokoro grades them D / D+ (af_heart = A), offered voice blending. Then he sent **Applio** (IAHispano, RVC voice *conversion*). Vetted: genuine, MIT, ~4k stars, maintenance mode, sensible terms (commercial OK with rights). Not installed: Windows installer targets NVIDIA (CUDA), his AMD/i5 can't train models; its built-in TTS is edge-tts (unofficial use of Microsoft's online voices); the shared voice-model ecosystem is mostly unlicensed celebrity/character clones and `.pth` files from strangers. Introduced: a fingerprint proves a file is *unchanged*, not that its maker is trustworthy. Suggested: later, via Google Colab, train a signature voice from his own recordings.
+  - Agreed not to download Applio (bookmarked in `Voice Studio\LATER.md`; unused software = unpatched door). Max wants "a mix of both and my own": `say.py` now blends voices by weight + `--accent a|b`; made 4 Onyx/Lewis blends (`clips/blend_*.wav`). Own voice: Chatterbox (MIT, clones from ~20 s, no training) installing into a separate `.venv-chatterbox` (needs torch 2.6 / numpy<2, would break Kokoro's toolbox). Mic: Turtle Beach Stealth 700P. He sent WhisperX (via sourcepulse.org): vetted (BSD-2, 25k stars), parked in LATER.md for subtitles. Introduced: your voice is biometric, keep the sample private. Waiting on: his 20 s recording, blend pick, channel idea.
+  - Max didn't know the Start button (bottom-left Windows logo / Windows key); opened Voice Recorder for him. He recorded 22.3 s (no clipping, -26 dBFS). Copied to `Voice Studio\my-voice\` (private). Chatterbox model is `.safetensors` (can't carry code; contrast with `.pth`). `clone.py` made `clips/maximus_clone_test.wav` (10.8 s in ~190 s on CPU). Original `Recording.m4a` still in Documents\Sound recordings; asked if he wants it deleted.
+
+- **2026-11-05 (Max, session 9)**: Max wants a second, separate website for his Faction War. He ran `npx create-next-app` himself; renamed the folder in File Explorer to `C:\Users\User\Github\Faction War` (chose to keep the space; package name set to `faction-war`). Slowed down to teach folders/paths (drawers analogy). He first typed `cd` into a browser search, then found the VS Code terminal via Terminal > New Terminal. He deleted `cat-fireball` (confirmed on purpose; it's in the Recycle Bin). He ran `npm run dev` on it and saw the starter. He clicked its "Deploy now" and reached Vercel signup; stopped him (accounts = owner's call; GitHub before Vercel). Then he asked Claude to set the folder up with security: done (headers copied from this site, placeholder Hero, `CLAUDE.md` + session log in that folder, local git commit `2fda243`, no remote). Future Faction War sessions log there; this concept table stays the single tracker. Not yet: GitHub/Vercel (a new repo + Vercel project need the owner's access or Max's own accounts). Remind: HAFW rules are private, so decide what's public before pushing. Prediction unanswered: can anyone online see the new site yet?
+
+- **2026-10-29 (Max, session 8)**: Max brought his Holy Alliance Faction War (BC-004) game rules over from ChatGPT, then pasted his own notes and three maps. Compared them line by line, re-checked all the economy math (correct), and Max answered ~20 A/B questions. Result: one "Hardset Register" in `Documents\Black Citadel Archive` (private, outside the public repo), with a dated decision log and a Superseded table. Introduced: change control (never erase old decisions; log what replaced them, same idea as git commits). Open: where each capital sits on the maps. No website work this session.
+
+- **2026-10-29 (Max, session 7)**: Max moved his Freebuff work here. 7 Freebuff chats exported to readable files in `Documents\Freebuff Archive` (private, outside this public repo). Projects moved from `Desktop\Freebuff Test` to `C:\Users\User\Github\` (AetherLink, Family Chart, Kingdom Edition, ManaLens, The Good Book, cat-fireball, Knights-Keep.zip; GENESIS copied from Freebuff's folder). Marketing Pairing Lab was locked (leftover Freebuff bash.exe; Max ended them in Task Manager, still locked), so it was copied; the Desktop original should be deleted after a restart. Key scan: chats clean; Kingdom Edition holds a `.env` key and a browser profile, which is fine locally but must never be pushed public. Introduced: a public repo is world-readable, so private chats live outside it; "file in use" locks. Left Freebuff's build leftovers (`_probe`, `build`, `dist`) on the Desktop. Check question (why chats outside the repo?): he said "they aren't related to the website", which is partly right, so I retaught the privacy reason (public repo = shop window). Kingdom Edition is his next separate project. AetherLink = PS5/PC/TV switching guide + PowerShell app from a Freebuff chat; he hadn't recognised it; kept.
 
 - **2026-10-28 (Max, session 6, cont.)**: Max asked to switch on file storage + picture uploads. R2 needs the owner's payment method, so pictures go in the database instead (small, re-drawn). Built: upload your own emblem/banner on `/profile` (replaces the preset; remove to go back), admin can remove anyone's pictures from their profile page. Introduced: never trust a file's name (check contents), re-encoding strips hidden data like GPS location, SVG can carry scripts so it's refused, upload limits (3 MB, 10/hour). Nothing marked understood.
 
