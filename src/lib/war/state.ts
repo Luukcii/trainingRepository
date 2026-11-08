@@ -5,20 +5,50 @@ import { db } from "@/lib/db";
 import { warEvent, warFaction, warMovement, warSetting, warTerritory } from "@/lib/db/schema";
 import { factionIds, territories, type FactionId } from "@/content/war/map";
 import { exampleWarState } from "./example";
-import type { FactionStats, Movement, TerritoryState, Tier, WarState } from "./types";
+import type { FactionStats, Movement, TerritoryState, Tier, WarState, WarViewer } from "./types";
 
 const RECENT_MS = 24 * 3_600_000; // finished movements stay on the map for a day
 
 const isFaction = (value: string | null): value is FactionId => factionIds.includes(value as FactionId);
 
-export async function loadWarState(): Promise<WarState> {
+// The war as one viewer may see it. Every caller passes who is looking; nothing leaves this file unfiltered.
+export async function loadWarState(viewer: WarViewer): Promise<WarState> {
+  let full: WarState;
   try {
-    return (await loadLiveState()) ?? exampleWarState();
+    full = (await loadLiveState()) ?? exampleWarState();
   } catch (error) {
     // Never log the raw error: database errors can contain the connection string.
     console.warn("war map: live state unavailable, showing example data", error instanceof Error ? error.name : "unknown");
-    return exampleWarState();
+    full = exampleWarState();
   }
+  return scopeWarState(full, viewer);
+}
+
+// Fog of war (Hardset Register: information is valuable; Envoys are found by espionage, decision 75;
+// rivals only see the weekly totals, decision 142). Everyone sees who holds each territory and its tier.
+// A kingdom's members also see their own numbers, the troops, buildings and obstacles on their own land,
+// their own movements, Attacks on their land, and their own news. Staff ("all") see everything public.
+export function scopeWarState(state: WarState, viewer: WarViewer): WarState {
+  if (viewer === "all") return { ...state, viewer };
+  const mine = (owner: FactionId | null) => viewer !== null && owner === viewer;
+
+  const territoriesOut: Record<string, TerritoryState> = {};
+  for (const [id, t] of Object.entries(state.territories)) {
+    territoriesOut[id] = mine(t.owner) ? t : { owner: t.owner, tier: t.tier, troops: null, buildings: [], obstacles: [] };
+  }
+  const factionsOut: WarState["factions"] = {};
+  if (viewer && state.factions[viewer]) factionsOut[viewer] = state.factions[viewer];
+
+  return {
+    ...state,
+    viewer,
+    factions: factionsOut,
+    territories: territoriesOut,
+    movements: viewer
+      ? state.movements.filter((m) => m.faction === viewer || (m.kind === "attack" && mine(state.territories[m.to]?.owner ?? null)))
+      : [],
+    events: viewer ? state.events.filter((e) => e.faction === viewer) : [],
+  };
 }
 
 async function loadLiveState(): Promise<WarState | null> {
@@ -39,7 +69,7 @@ async function loadLiveState(): Promise<WarState | null> {
 
   if (factionRows.length === 0) return null; // the war hasn't been set up yet
 
-  const factionsOut = {} as Record<FactionId, FactionStats>;
+  const factionsOut: Record<FactionId, FactionStats> = {} as Record<FactionId, FactionStats>;
   for (const id of factionIds) {
     const row = factionRows.find((r) => r.id === id);
     factionsOut[id] = {
@@ -83,6 +113,7 @@ async function loadLiveState(): Promise<WarState | null> {
 
   return {
     source: "live",
+    viewer: "all",
     day: Number(dayRow[0]?.value ?? 1),
     loadedAt: new Date().toISOString(),
     factions: factionsOut,

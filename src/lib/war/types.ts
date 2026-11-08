@@ -20,7 +20,7 @@ export type FactionStats = {
 export type TerritoryState = {
   owner: FactionId | null;
   tier: Tier;
-  troops: number;
+  troops: number | null; // null = secret: only the holding kingdom sees its troops, buildings and obstacles
   buildings: string[];
   obstacles: string[];
 };
@@ -40,11 +40,15 @@ export type Movement = {
 
 export type WarEventItem = { id: string; at: string; faction: FactionId | null; summary: string };
 
+// Who is looking: one kingdom's members, staff (everything), or the public (land and tiers only).
+export type WarViewer = FactionId | "all" | null;
+
 export type WarState = {
   source: "live" | "example";
+  viewer: WarViewer;
   day: number;
   loadedAt: string;
-  factions: Record<FactionId, FactionStats>;
+  factions: Partial<Record<FactionId, FactionStats>>; // only the kingdoms this viewer may see
   territories: Record<string, TerritoryState>;
   movements: Movement[];
   events: WarEventItem[];

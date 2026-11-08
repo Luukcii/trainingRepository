@@ -41,7 +41,7 @@ export function exampleWarState(now = Date.now()): WarState {
   const stats = (gold: number, troops: number, stone: number, lumber: number, faith: number, fame: number, trade: number) => ({
     gold, troops, stone, lumber, faith, fame, trade, ap: 2,
   });
-  const factionStats: Record<FactionId, WarState["factions"][FactionId]> = {
+  const factionStats: Record<FactionId, NonNullable<WarState["factions"][FactionId]>> = {
     svaroth: stats(61_400, 5_200, 900, 750, 3_150, 2_400, 38_500),
     kogahara: stats(54_900, 4_600, 600, 1_100, 2_200, 3_050, 31_200),
     valdyruus: stats(68_200, 6_100, 1_250, 500, 1_400, 2_750, 44_800),
@@ -50,6 +50,7 @@ export function exampleWarState(now = Date.now()): WarState {
 
   return {
     source: "example",
+    viewer: "all",
     day: 6,
     loadedAt: new Date(now).toISOString(),
     factions: factionStats,

@@ -49,8 +49,11 @@ export function TerritoryPopup({ id, state, movements }: { id: string; state: Te
             <Term id={tierTerm[state.tier]}>{tierNames[state.tier]}</Term>
           </Row>
         )}
-        {t.home && <Row label="Troops"><Term id="troops">{fmt(state.troops)}</Term></Row>}
-        {t.home && (
+        {t.home && state.troops === null && (
+          <Row label="Troops and buildings"><span className="text-muted">Secret to its holder</span></Row>
+        )}
+        {t.home && state.troops !== null && <Row label="Troops"><Term id="troops">{fmt(state.troops)}</Term></Row>}
+        {t.home && state.troops !== null && (
           <Row label="Buildings">{state.buildings.length ? state.buildings.join(", ") : <span className="text-muted">None yet</span>}</Row>
         )}
         {state.obstacles.length > 0 && (
@@ -124,7 +127,7 @@ export function StatPopup({ faction, statKey, value }: { faction: FactionId; sta
             <div className="h-full rounded-full" style={{ width: `${share * 100}%`, background: factions[faction].color }} />
           </div>
           <p className="mt-1 text-sm text-muted">
-            {Math.round(share * 1000) / 10}% of the {fmt(info.goal)} needed for the <Term id={info.term === "trade-win" ? "trade-win" : `${info.term}-win`}>{info.label} victory</Term>. A kingdom whose own victory this is needs half.
+            {Math.round(share * 1000) / 10}% of the {fmt(info.goal)} the <Term id={info.term === "trade-win" ? "trade-win" : `${info.term}-win`}>{info.label} victory</Term> needs{info.key === "trade" ? "" : " with 20 active members (bigger kingdoms need more)"}. It&apos;s one part of that victory; tap the term for the rest.
           </p>
         </div>
       )}

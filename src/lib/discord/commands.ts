@@ -40,7 +40,8 @@ export const commands = [
     name: "war",
     description: "Look up the faction war",
     options: [
-      { type: SUB, name: "status", description: "A kingdom's treasury and scores", options: [kingdom(false, "Leave empty for all three")] },
+      { type: SUB, name: "join", description: "Get your private link to make a faction-war account" },
+      { type: SUB, name: "status", description: "Your kingdom's treasury and scores (only you see the reply)", options: [kingdom(false, "Staff: leave empty for all three")] },
       { type: SUB, name: "territory", description: "Who holds a territory and what's on it", options: [place("name", "Territory name")] },
       { type: SUB, name: "moving", description: "Envoys, Attacks and raids on the move" },
       { type: SUB, name: "log", description: "The latest news", options: [{ type: INTEGER, name: "count", description: "How many (default 10)", min_value: 1, max_value: 25 }] },

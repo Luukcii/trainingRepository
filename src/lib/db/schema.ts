@@ -17,7 +17,13 @@ export const user = pgTable("user", {
   email: text("email").notNull().unique(),
   emailVerified: boolean("email_verified").notNull().default(false),
   image: text("image"),
-  role: text("role").notNull().default("member"), // "admin" opens /admin; everyone else is "member"
+  // "admin" opens /admin; "member" is the invite-only community; "player" is a faction-war account made through Discord
+  role: text("role").notNull().default("member"),
+  // Faction-war accounts: log in with their Discord username (Better Auth's username plugin owns these two).
+  username: text("username").unique(),
+  displayUsername: text("display_username"),
+  discordId: text("discord_id").unique(), // proven by the bot: the person who ran /war join
+  warFaction: text("war_faction"), // "svaroth" | "kogahara" | "valdyruus", chosen once; null until chosen
   createdAt: timestamp("created_at").notNull().defaultNow(),
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
 });
@@ -310,3 +316,20 @@ export const warSetting = pgTable("war_setting", {
   key: text("key").primaryKey(),
   value: text("value").notNull(),
 });
+
+// One-time faction-war sign-up links. The Discord bot makes one when a player types /war join, so the
+// Discord account is proven. Like invites, the database keeps only the token's fingerprint (hash).
+export const warJoinToken = pgTable(
+  "war_join_token",
+  {
+    id: text("id").primaryKey(),
+    tokenHash: text("token_hash").notNull().unique(),
+    discordId: text("discord_id").notNull(),
+    discordUsername: text("discord_username").notNull(),
+    displayName: text("display_name").notNull(),
+    expiresAt: timestamp("expires_at").notNull(),
+    usedAt: timestamp("used_at"),
+    createdAt: timestamp("created_at").notNull().defaultNow(),
+  },
+  (t) => [index("war_join_token_discord_idx").on(t.discordId)],
+);

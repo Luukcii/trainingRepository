@@ -1,11 +1,13 @@
-// Turns one Discord slash command into a reply. Reading commands are open to everyone in the server;
+// Turns one Discord slash command into a reply. Reading commands are open to everyone in the server, but
+// kingdom details only reach that kingdom's members (and staff), as private replies;
 // /warstaff commands check staff rights here on our server, every time.
 import { z } from "zod";
 import { factionIds, factions, findTerritory, matchTerritory, territories, type FactionId } from "@/content/war/map";
 import { findTerm, glossary } from "@/content/war/glossary";
 import { stripMarkup } from "@/lib/war/markup";
 import { loadWarState } from "@/lib/war/state";
-import { tierNames, type Tier } from "@/lib/war/types";
+import { createJoinLink, factionOfDiscordUser } from "@/lib/war/accounts";
+import { tierNames, type Tier, type WarViewer } from "@/lib/war/types";
 import {
   changeStat,
   getTerritoryRow,
@@ -36,7 +38,7 @@ export type Interaction = {
   type: number;
   guild_id?: string;
   data?: { name: string; options?: Option[] };
-  member?: { user: { id: string }; permissions?: string; roles?: string[] };
+  member?: { user: { id: string; username?: string; global_name?: string | null }; permissions?: string; roles?: string[]; nick?: string | null };
 };
 
 const siteUrl = () => (process.env.BETTER_AUTH_URL ?? "https://training-repository-ten.vercel.app").replace(/\/$/, "");
@@ -101,7 +103,7 @@ export async function handleInteraction(interaction: Interaction) {
   if (interaction.type !== COMMAND) return reply("Unknown command.", { private: true });
 
   try {
-    if (interaction.data.name === "war") return await publicCommand(sub);
+    if (interaction.data.name === "war") return await publicCommand(sub, interaction.member);
     if (interaction.data.name === "warstaff") {
       if (!isStaff(interaction.member)) return reply("Only war staff can change the record.", { private: true });
       return await staffCommand(sub, interaction.member!.user.id);
@@ -126,15 +128,43 @@ function autocomplete(options: Option[]) {
   return { type: AUTOCOMPLETE_RESULT, data: { choices: choices.slice(0, 25) } };
 }
 
-async function publicCommand(sub: Option) {
+// Fog of war, the same as on the website: staff see every kingdom; a player sees only the kingdom their
+// linked account is sworn to; anyone else is pointed to /war join. Kingdom details always go out as
+// private replies, so they never land in a public channel.
+const notLinked = () =>
+  `Kingdom details are for its members. Type \`/war join\` to make your account, then choose your faction at ${siteUrl()}/war.`;
+
+async function viewerFor(member: Interaction["member"]): Promise<WarViewer> {
+  if (!member) return null;
+  if (isStaff(member)) return "all";
+  return factionOfDiscordUser(member.user.id);
+}
+
+async function publicCommand(sub: Option, member: Interaction["member"]) {
   const read = reader(sub.options);
   switch (sub.name) {
+    case "join": {
+      // Discord itself tells us who ran the command, so the link is tied to a proven Discord account.
+      if (!member?.user.username) return reply("I couldn't read your Discord account. Try again in the server.", { private: true });
+      const name = member.nick ?? member.user.global_name ?? member.user.username;
+      const link = await createJoinLink(member.user.id, member.user.username, name);
+      if (link.kind === "exists") {
+        return reply(`You already have an account. Log in at ${siteUrl()}/war/login with **${link.username}** and your password.`, { private: true });
+      }
+      return reply(
+        `Your private sign-up link. Only you can see this; it works once, for ${link.minutes} minutes:\n${siteUrl()}/war/join/${link.token}\n\nDon't share it: whoever opens it gets an account in your name.`,
+        { private: true },
+      );
+    }
     case "status": {
-      const state = await loadWarState();
+      const viewer = await viewerFor(member);
+      if (!viewer) return reply(notLinked(), { private: true });
+      const state = await loadWarState(viewer);
       const chosen = read.kingdom();
-      const list = chosen ? [chosen] : factionIds;
+      const list = (chosen ? [chosen] : factionIds).filter((f) => state.factions[f]);
+      if (list.length === 0) return reply("That kingdom's numbers are secret. Vaelith may sell you what he knows.", { private: true });
       const embeds = list.map((f) => {
-        const s = state.factions[f];
+        const s = state.factions[f]!;
         const held = Object.values(state.territories).filter((t) => t.owner === f).length;
         return {
           title: `${factions[f].name} (${factions[f].people})`,
@@ -144,43 +174,51 @@ async function publicCommand(sub: Option) {
             ["Gold", fmt(s.gold)],
             ["Troops", fmt(s.troops)],
             ["Stone / Lumber", `${fmt(s.stone)} / ${fmt(s.lumber)}`],
-            ["Faith", `${fmt(s.faith)} / 25,000`],
-            ["Fame", `${fmt(s.fame)} / 21,000`],
+            ["Faith", `${fmt(s.faith)} / 25,000 at 20 members`],
+            ["Fame", `${fmt(s.fame)} / 21,000 at 20 members`],
             ["Trade", `${fmt(s.trade)} / 425,000`],
             ["AP", fmt(s.ap)],
           ].map(([name, value]) => ({ name, value, inline: true })),
         };
       });
       const note = state.source === "example" ? " (example numbers: the war hasn't been set up yet)" : "";
-      return reply(`**Day ${state.day} of 30**${note}`, { embeds });
+      return reply(`**Day ${state.day} of 30**${note}`, { embeds, private: true });
     }
     case "territory": {
       const t = read.place("name");
-      const state = await loadWarState();
+      const state = await loadWarState(await viewerFor(member));
       const ts = state.territories[t.id];
       const owner = ts.owner ? factions[ts.owner].name : "Neutral";
       const lines = [
         `Held by **${owner}**${t.home && ts.owner !== t.home ? ` (originally ${factions[t.home].name})` : ""}`,
-        t.home ? `Tier: ${tierNames[ts.tier]} · Troops: ${fmt(ts.troops)}` : t.note,
+        t.home ? `Tier: ${tierNames[ts.tier]} · Troops: ${ts.troops === null ? "secret" : fmt(ts.troops)}` : t.note,
         ts.buildings.length ? `Buildings: ${ts.buildings.join(", ")}` : "",
         ts.obstacles.length ? `Obstacles: ${ts.obstacles.join(", ")}` : "",
       ].filter(Boolean);
-      return reply("", { embeds: [{ title: t.name, description: lines.join("\n"), color: ts.owner ? color(ts.owner) : 0xd9b400 }] });
+      return reply("", { private: true, embeds: [{ title: t.name, description: lines.join("\n"), color: ts.owner ? color(ts.owner) : 0xd9b400 }] });
     }
     case "moving": {
-      const state = await loadWarState();
+      const viewer = await viewerFor(member);
+      if (!viewer) return reply(notLinked(), { private: true });
+      const state = await loadWarState(viewer);
       const moving = state.movements.filter((m) => m.status === "moving");
-      if (moving.length === 0) return reply("Nothing on the move right now.");
+      if (moving.length === 0) return reply("Nothing of yours on the move right now.", { private: true });
       const lines = moving.map((m) => {
         const arrives = Math.floor(Date.parse(m.arrivesAt) / 1000);
         return `\`${m.id}\` ${factions[m.faction].name} ${m.kind}: ${findTerritory(m.from)?.name} → ${findTerritory(m.to)?.name}, arrives <t:${arrives}:R>`;
       });
-      return reply(lines.join("\n"));
+      return reply(lines.join("\n"), { private: true });
     }
     case "log": {
-      if (!(await isWarSetUp())) return reply("The war hasn't been set up yet.");
-      const events = await recentEvents(read.int("count", 1, 25) ?? 10, false);
-      return reply(events.map((e) => `<t:${Math.floor(e.at.getTime() / 1000)}:R> ${e.summary}`).join("\n") || "Nothing recorded yet.");
+      const viewer = await viewerFor(member);
+      if (!viewer) return reply(notLinked(), { private: true });
+      if (!(await isWarSetUp())) return reply("The war hasn't been set up yet.", { private: true });
+      const count = read.int("count", 1, 25) ?? 10;
+      const events =
+        viewer === "all"
+          ? await recentEvents(count, false)
+          : (await recentEvents(100, false)).filter((e) => e.faction === viewer).slice(0, count);
+      return reply(events.map((e) => `<t:${Math.floor(e.at.getTime() / 1000)}:R> ${e.summary}`).join("\n") || "Nothing recorded yet.", { private: true });
     }
     case "rule": {
       const id = read.text("term", 60);
@@ -190,7 +228,8 @@ async function publicCommand(sub: Option) {
       return reply("", { private: true, embeds: [{ title: entry.term, description: text, url: `${siteUrl()}/war/rules#glossary` }] });
     }
     case "map":
-      return reply(`🗺️ War map: ${siteUrl()}/war/map\n📖 Player's guide: ${siteUrl()}/war/rules\n📚 Full rulebook: ${siteUrl()}/war/rules/full`);
+      return reply(`⚔️ Faction War: ${siteUrl()}/war
+🗺️ War map: ${siteUrl()}/war/map\n📖 Player's guide: ${siteUrl()}/war/rules\n📚 Full rulebook: ${siteUrl()}/war/rules/full`);
   }
   return reply("Unknown command.", { private: true });
 }

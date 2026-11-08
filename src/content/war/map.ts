@@ -6,13 +6,19 @@ export type FactionId = "svaroth" | "kogahara" | "valdyruus";
 
 export const MAP_SIZE = { width: 2634, height: 1432 };
 
-export const factions: Record<FactionId, { name: string; people: string; color: string; capital: string }> = {
-  svaroth: { name: "Svaroth", people: "Knights", color: "#e23b44", capital: "aurelia-sanctum" },
-  kogahara: { name: "Kōgahara", people: "Samurai", color: "#f07a1f", capital: "jisei-no-shiro" },
-  valdyruus: { name: "Valdyruus", people: "Vikings", color: "#9a52d6", capital: "valdrheim" },
+// people = what the kingdom's members are called (the faction buttons on /war); heroes = its For Honor hero pool.
+// slug = the kingdom's page, /war/<slug>.
+export const factions: Record<FactionId, { name: string; people: string; heroes: string; slug: string; color: string; capital: string }> = {
+  svaroth: { name: "Svaroth", people: "Crusaders", heroes: "Knights", slug: "crusaders", color: "#e23b44", capital: "aurelia-sanctum" },
+  kogahara: { name: "Kōgahara", people: "Samurai", heroes: "Samurai", slug: "samurai", color: "#f07a1f", capital: "jisei-no-shiro" },
+  valdyruus: { name: "Valdyruus", people: "Berserkrs", heroes: "Vikings", slug: "berserkrs", color: "#9a52d6", capital: "valdrheim" },
 };
 
 export const factionIds = Object.keys(factions) as FactionId[];
+
+export function factionBySlug(slug: string): FactionId | undefined {
+  return factionIds.find((f) => factions[f].slug === slug);
+}
 
 export type Territory = {
   id: string;
@@ -28,7 +34,7 @@ export const territories: Territory[] = [
   // Valdyruus — the north
   { id: "valdrheim", name: "Grand Hall of Valdrheim", number: null, home: "valdyruus", x: 1094, y: 190, note: "Capital" },
   { id: "east-belfast", name: "East Belfast", number: 1, home: "valdyruus", x: 1578, y: 352 },
-  { id: "jorvik", name: "Jorvík", number: 2, home: "valdyruus", x: 1428, y: 470 },
+  { id: "jorvik", name: "Jorvik", number: 2, home: "valdyruus", x: 1428, y: 470 },
   { id: "dyflin", name: "Dyflin", number: 3, home: "valdyruus", x: 1164, y: 396 },
   { id: "west-belfast", name: "West Belfast", number: 4, home: "valdyruus", x: 1834, y: 368 },
   { id: "limerick", name: "Limerick", number: 5, home: "valdyruus", x: 2028, y: 292 },
@@ -36,9 +42,9 @@ export const territories: Territory[] = [
   { id: "mount-glyn", name: "Mount Glyn", number: 7, home: "valdyruus", x: 2164, y: 246 },
   { id: "draig-goch", name: "Draig-Goch", number: 8, home: "valdyruus", x: 1824, y: 146 },
   { id: "ulfsheim", name: "Ulfsheim", number: 9, home: "valdyruus", x: 1568, y: 168 },
-  { id: "skjoldvik", name: "Skjoldvík", number: 10, home: "valdyruus", x: 1412, y: 236 },
+  { id: "skjoldvik", name: "Skjoldvik", number: 10, home: "valdyruus", x: 1412, y: 236 },
   { id: "blodborg", name: "Blóðborg", number: 11, home: "valdyruus", x: 740, y: 162 },
-  { id: "hrafnsvik", name: "Hrafnsvík", number: 12, home: "valdyruus", x: 892, y: 262 },
+  { id: "hrafnsvik", name: "Hrafnsvik", number: 12, home: "valdyruus", x: 892, y: 262 },
 
   // Svaroth — the western island and the southern coast
   { id: "aurelia-sanctum", name: "Holy City of Aurelia Sanctum", number: null, home: "svaroth", x: 590, y: 610, note: "Capital" },
@@ -61,7 +67,7 @@ export const territories: Territory[] = [
   { id: "seiryu", name: "Seiryū", number: 2, home: "kogahara", x: 1428, y: 584 },
   { id: "kinzan-jo", name: "Kinzan-jō", number: 3, home: "kogahara", x: 1612, y: 1028 },
   { id: "shinryo-jo", name: "Shinryō-jō", number: 4, home: "kogahara", x: 1864, y: 594 },
-  { id: "reizan-no-oshiro", name: "Reizan no Oshiro", number: 5, home: "kogahara", x: 2060, y: 536 },
+  { id: "reizan-no-oshiro", name: "Reizan no Ōshiro", number: 5, home: "kogahara", x: 2060, y: 536 },
   { id: "kaijo-no-kuni", name: "Kaijō no Kuni", number: 6, home: "kogahara", x: 1790, y: 1116 },
   { id: "okawa-no-sato", name: "Ōkawa no Sato", number: 7, home: "kogahara", x: 1556, y: 876 },
   { id: "tetsurei", name: "Tetsurei", number: 8, home: "kogahara", x: 1914, y: 1040 },
@@ -95,7 +101,7 @@ export function matchTerritory(input: string): Territory | undefined {
   return territories.find((t) => plain(t.name).startsWith(wanted));
 }
 
-// Resource sites on the whole map, from the map legend.
+// Resource sites on the whole map (Hardset Register 2.4: 26 Goldmines, 17 Stone, 13 Forest, 84 Economic, 28 Luxury).
 export const resourceTotals = {
   gold: [{ name: "Goldmine", count: 26 }],
   building: [

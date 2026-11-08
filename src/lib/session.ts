@@ -5,15 +5,29 @@ import { redirect } from "next/navigation";
 import { connection } from "next/server";
 import { auth } from "./auth";
 
-// For pages anyone can see: the user if logged in, otherwise null.
-export async function getUser() {
+async function currentSession() {
   // Wait for a real visitor. Without this, Next.js starts the session lookup while building pages early
   // (prefetching), cuts it off, and Better Auth logs the error — with the session token in it.
   await connection();
-  const session = await auth.api.getSession({ headers: await headers() });
-  if (!session) return null;
+  return auth.api.getSession({ headers: await headers() });
+}
+
+// For the members' site (friends, messages, profiles…): the user if logged in, otherwise null.
+// Faction-war players (role "player") sign up through Discord, not by invite, so the members' site
+// treats them as visitors: a war account never opens the invite-only community.
+export async function getUser() {
+  const session = await currentSession();
+  if (!session || session.user.role === "player") return null;
   const { id, name, email, role } = session.user;
   return { id, name, email, role };
+}
+
+// For the faction-war pages: anyone logged in, players included, with their war details.
+export async function getWarUser() {
+  const session = await currentSession();
+  if (!session) return null;
+  const { id, name, role, username, discordId, warFaction } = session.user;
+  return { id, name, role, username: username ?? null, discordId: discordId ?? null, warFaction: warFaction ?? null };
 }
 
 // Authentication: are you anyone? Not logged in → /login.

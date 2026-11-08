@@ -7,6 +7,7 @@ import { SiteFooter } from "@/components/layout/SiteFooter";
 import { WarNav } from "@/components/war/WarNav";
 import { WarMap } from "@/components/war/map/WarMap";
 import { loadWarState } from "@/lib/war/state";
+import { currentViewer } from "@/lib/war/viewer";
 
 export const metadata: Metadata = { title: "Faction War — Map" };
 
@@ -27,5 +28,5 @@ export default function WarMapPage() {
 
 async function LiveMap() {
   await connection(); // fresh numbers for every visitor, never a copy baked in at build time
-  return <WarMap initial={await loadWarState()} />;
+  return <WarMap initial={await loadWarState(await currentViewer())} />;
 }

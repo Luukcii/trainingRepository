@@ -2,6 +2,7 @@
 // The whole war map page: each kingdom's numbers, the map, a legend and the latest news.
 // It asks the server for fresh numbers every 30 seconds while the tab is open.
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import { factionIds, factions, territories, resourceTotals, type FactionId } from "@/content/war/map";
 import type { Movement, WarState } from "@/lib/war/types";
 import { ExplainProvider, useExplain } from "../ExplainProvider";
@@ -78,6 +79,19 @@ function WarMapInner({ initial }: { initial: WarState }) {
         )}
       </div>
 
+      <p className="rounded-lg border border-line px-4 py-3 text-sm">
+        {state.viewer === "all"
+          ? "Staff view: every kingdom's numbers."
+          : state.viewer
+            ? `You see ${factions[state.viewer].name}'s numbers, land, Envoys and news. Other kingdoms' stay secret; buy what you need from Vaelith.`
+            : "Public view: who holds each territory and its tier. "}
+        {!state.viewer && (
+          <Link href="/war" className="underline">
+            Log in and choose your faction to see your kingdom&apos;s numbers.
+          </Link>
+        )}
+      </p>
+
       {/* Phones: swipe sideways between kingdoms. Wider screens: all three side by side. */}
       <div className="-mx-4 flex snap-x snap-mandatory gap-3 overflow-x-auto px-4 pb-1 md:mx-0 md:grid md:grid-cols-3 md:overflow-visible md:px-0">
         {factionIds.map((f) => (
@@ -89,9 +103,21 @@ function WarMapInner({ initial }: { initial: WarState }) {
             <h2 className="text-lg font-semibold">
               <Term id={f}>{factions[f].name}</Term> <span className="text-sm font-normal text-muted">{factions[f].people}</span>
             </h2>
+            {!state.factions[f] ? (
+              <dl className="mt-3 grid grid-cols-3 gap-2">
+                <div className="rounded-lg bg-line/40 px-2 py-2">
+                  <dt className="text-xs text-muted">Territories</dt>
+                  <dd className="font-semibold tabular-nums">{fmt(held(f))}</dd>
+                </div>
+                <div className="col-span-2 rounded-lg bg-line/40 px-2 py-2 text-sm text-muted">
+                  Secret. <Term id="quarter">Public totals</Term> are posted after days 7, 14 and 21.
+                </div>
+              </dl>
+            ) : (
             <dl className="mt-3 grid grid-cols-3 gap-2">
               {statInfo.map((s) => {
-                const value = s.key === "territories" ? held(f) : state.factions[f][s.key];
+                const stats = state.factions[f]!;
+                const value = s.key === "territories" ? held(f) : stats[s.key];
                 return (
                   <button
                     key={s.key}
@@ -110,6 +136,7 @@ function WarMapInner({ initial }: { initial: WarState }) {
                 );
               })}
             </dl>
+            )}
           </section>
         ))}
       </div>
@@ -170,7 +197,7 @@ function WarMapInner({ initial }: { initial: WarState }) {
         <section>
           <h2 className="mb-2 text-lg font-semibold">Latest news</h2>
           <ul className="space-y-2">
-            {state.events.length === 0 && <li className="text-muted">Nothing recorded yet.</li>}
+            {state.events.length === 0 && <li className="text-muted">{state.viewer ? "Nothing recorded yet." : "Members see their kingdom's news here."}</li>}
             {state.events.map((e) => (
               <li key={e.id} className="flex gap-2 text-sm">
                 <span className="mt-1.5 h-2 w-2 shrink-0 rounded-full" style={{ background: e.faction ? factions[e.faction].color : "#999" }} />
@@ -184,7 +211,7 @@ function WarMapInner({ initial }: { initial: WarState }) {
         <section>
           <h2 className="mb-2 text-lg font-semibold">On the move</h2>
           <ul className="space-y-1">
-            {state.movements.length === 0 && <li className="text-sm text-muted">Nothing on the move.</li>}
+            {state.movements.length === 0 && <li className="text-sm text-muted">{state.viewer ? "Nothing on the move." : "Members see their kingdom's Envoys and Attacks here."}</li>}
             {state.movements.map((m) => (
               <li key={m.id}>
                 <button type="button" onClick={() => showMovement(m)} className="w-full rounded-lg px-2 py-1.5 text-left text-sm hover:bg-line">

@@ -1,7 +1,8 @@
-// The tabs that link the three faction-war pages together.
+// The tabs that link the faction-war pages together.
 import Link from "next/link";
 
 const tabs = [
+  { key: "home", href: "/war", label: "Factions" },
   { key: "guide", href: "/war/rules", label: "Player's guide" },
   { key: "full", href: "/war/rules/full", label: "Full rulebook" },
   { key: "map", href: "/war/map", label: "War map" },

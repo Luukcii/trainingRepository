@@ -1,6 +1,8 @@
 // Labels, icons and number helpers the map pieces share.
 import type { FactionStats, MovementKind, MovementStatus } from "@/lib/war/types";
 
+// Goals: Faith and Fame targets for a kingdom of 20 active members (Register decisions 111, 169); the Trade
+// victory's 425,000 Gold of Black Market sales (decision 169).
 export const statInfo: { key: keyof FactionStats | "territories"; label: string; term: string; goal?: number }[] = [
   { key: "territories", label: "Territories", term: "territory" },
   { key: "gold", label: "Gold", term: "gold" },

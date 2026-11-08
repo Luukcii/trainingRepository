@@ -5,5 +5,5 @@ import { authOptions } from "./auth-options";
 
 export const auth = betterAuth({
   ...authOptions,
-  plugins: [nextCookies()],
+  plugins: [...authOptions.plugins, nextCookies()], // nextCookies last, as Better Auth's docs ask
 });
