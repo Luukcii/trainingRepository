@@ -1,4 +1,4 @@
-// The slash commands the bot offers, in the format Discord's API expects.
+// The slash commands God (the bot) offers, in the format Discord's API expects.
 // scripts/register-discord-commands.ts sends this list to Discord; run it again after changing anything here.
 // /war is for everyone (reading). /warstaff changes the record, so Discord only shows it to people with
 // "Manage Server" — and the server checks again itself, because a server admin can change who sees a command.
@@ -38,9 +38,10 @@ const movement = (kind: string) => ({
 export const commands = [
   {
     name: "war",
-    description: "Look up the faction war",
+    description: "Ask God about the faction war",
     options: [
-      { type: SUB, name: "join", description: "Get your private link to make a faction-war account" },
+      { type: SUB, name: "join", description: "God makes your faction-war account and privately gives you a password" },
+      { type: SUB, name: "password", description: "Lost your password? God gives you a new one (only you see it)" },
       { type: SUB, name: "status", description: "Your kingdom's treasury and scores (only you see the reply)", options: [kingdom(false, "Staff: leave empty for all three")] },
       { type: SUB, name: "territory", description: "Who holds a territory and what's on it", options: [place("name", "Territory name")] },
       { type: SUB, name: "moving", description: "Envoys, Attacks and raids on the move" },
@@ -156,6 +157,12 @@ export const commands = [
         name: "reveal",
         description: "Put a secret movement on the public map",
         options: [{ type: STRING, name: "id", description: "The movement's code", required: true, min_length: 5, max_length: 5 }],
+      },
+      {
+        type: SUB,
+        name: "ruling",
+        description: "Record a mods' ruling: God announces it and it goes in the war log",
+        options: [{ type: STRING, name: "text", description: "The ruling, in plain words", required: true, max_length: 500 }],
       },
       { type: SUB, name: "log", description: "Latest news, secret entries included (only you see it)", options: [{ type: INTEGER, name: "count", description: "How many (default 15)", min_value: 1, max_value: 25 }] },
     ],

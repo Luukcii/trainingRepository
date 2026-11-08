@@ -1,18 +1,20 @@
-// Turns one Discord slash command into a reply. Reading commands are open to everyone in the server, but
+// Turns one Discord slash command into God's reply (his words live in voice.ts). Reading commands are open to everyone in the server, but
 // kingdom details only reach that kingdom's members (and staff), as private replies;
 // /warstaff commands check staff rights here on our server, every time.
 import { z } from "zod";
 import { factionIds, factions, findTerritory, matchTerritory, territories, type FactionId } from "@/content/war/map";
 import { findTerm, glossary } from "@/content/war/glossary";
 import { stripMarkup } from "@/lib/war/markup";
-import { loadWarState } from "@/lib/war/state";
-import { createJoinLink, factionOfDiscordUser } from "@/lib/war/accounts";
+import { isAnnouncement, loadWarState } from "@/lib/war/state";
+import { createWarAccount, factionOfDiscordUser, resetWarPassword } from "@/lib/war/accounts";
+import { god } from "./voice";
 import { tierNames, type Tier, type WarViewer } from "@/lib/war/types";
 import {
   changeStat,
   getTerritoryRow,
   isWarSetUp,
   recentEvents,
+  recordRuling,
   resolveMovement,
   revealMovement,
   setDay,
@@ -44,6 +46,7 @@ export type Interaction = {
 const siteUrl = () => (process.env.BETTER_AUTH_URL ?? "https://training-repository-ten.vercel.app").replace(/\/$/, "");
 const fmt = (n: number) => n.toLocaleString("en");
 const color = (f: FactionId) => parseInt(factions[f].color.slice(1), 16);
+const joinUrl = (username: string) => `${siteUrl()}/war/join?name=${encodeURIComponent(username)}`;
 const plain = (text: string) => stripMarkup(text, (id) => findTerm(id)?.term ?? id);
 
 // Every reply goes out with mentions switched off: text typed into a command (a cargo note, a reason)
@@ -62,7 +65,7 @@ function reader(options: Option[] = []) {
   const raw = (name: string) => options.find((o) => o.name === name)?.value;
   const get = <T>(name: string, schema: z.ZodType<T>): T => {
     const result = schema.safeParse(raw(name));
-    if (!result.success) throw new InputError(`"${name}" doesn't look right.`);
+    if (!result.success) throw new InputError(god.badInput(name));
     return result.data;
   };
   return {
@@ -75,7 +78,7 @@ function reader(options: Option[] = []) {
     place: (name: string) => {
       const value = get(name, z.string().trim().min(1).max(60).optional());
       const t = value ? matchTerritory(value) : undefined;
-      if (!t) throw new InputError(`I don't know a territory called "${value ?? ""}".`);
+      if (!t) throw new InputError(god.unknownPlace(value ?? ""));
       return t;
     },
   };
@@ -93,26 +96,26 @@ export async function handleInteraction(interaction: Interaction) {
   // Only our own server. Anyone could add a bot to their server, where they are admin: without this check,
   // they could run /warstaff there and rewrite our war.
   if (interaction.guild_id !== process.env.DISCORD_GUILD_ID) {
-    return reply("This bot only works in the HAFW server.", { private: true });
+    return reply(god.wrongServer, { private: true });
   }
 
   const sub = interaction.data?.options?.[0];
-  if (!interaction.data || !sub) return reply("Unknown command.", { private: true });
+  if (!interaction.data || !sub) return reply(god.unknown, { private: true });
 
   if (interaction.type === AUTOCOMPLETE) return autocomplete(sub.options ?? []);
-  if (interaction.type !== COMMAND) return reply("Unknown command.", { private: true });
+  if (interaction.type !== COMMAND) return reply(god.unknown, { private: true });
 
   try {
     if (interaction.data.name === "war") return await publicCommand(sub, interaction.member);
     if (interaction.data.name === "warstaff") {
-      if (!isStaff(interaction.member)) return reply("Only war staff can change the record.", { private: true });
+      if (!isStaff(interaction.member)) return reply(god.staffOnly, { private: true });
       return await staffCommand(sub, interaction.member!.user.id);
     }
-    return reply("Unknown command.", { private: true });
+    return reply(god.unknown, { private: true });
   } catch (error) {
     if (error instanceof InputError) return reply(error.message, { private: true });
     console.error("discord command failed:", interaction.data.name, sub.name, error instanceof Error ? error.name : "unknown");
-    return reply("Something went wrong recording that. Nothing was changed, or only part was: check `/war log`.", { private: true });
+    return reply(god.failed, { private: true });
   }
 }
 
@@ -131,8 +134,7 @@ function autocomplete(options: Option[]) {
 // Fog of war, the same as on the website: staff see every kingdom; a player sees only the kingdom their
 // linked account is sworn to; anyone else is pointed to /war join. Kingdom details always go out as
 // private replies, so they never land in a public channel.
-const notLinked = () =>
-  `Kingdom details are for its members. Type \`/war join\` to make your account, then choose your faction at ${siteUrl()}/war.`;
+const notLinked = () => god.notLinked(`${siteUrl()}/war`);
 
 async function viewerFor(member: Interaction["member"]): Promise<WarViewer> {
   if (!member) return null;
@@ -144,17 +146,18 @@ async function publicCommand(sub: Option, member: Interaction["member"]) {
   const read = reader(sub.options);
   switch (sub.name) {
     case "join": {
-      // Discord itself tells us who ran the command, so the link is tied to a proven Discord account.
-      if (!member?.user.username) return reply("I couldn't read your Discord account. Try again in the server.", { private: true });
+      // Discord itself tells us who ran the command, so the account is tied to a proven Discord account.
+      if (!member?.user.username) return reply(god.cantReadAccount, { private: true });
       const name = member.nick ?? member.user.global_name ?? member.user.username;
-      const link = await createJoinLink(member.user.id, member.user.username, name);
-      if (link.kind === "exists") {
-        return reply(`You already have an account. Log in at ${siteUrl()}/war/login with **${link.username}** and your password.`, { private: true });
-      }
-      return reply(
-        `Your private sign-up link. Only you can see this; it works once, for ${link.minutes} minutes:\n${siteUrl()}/war/join/${link.token}\n\nDon't share it: whoever opens it gets an account in your name.`,
-        { private: true },
-      );
+      const result = await createWarAccount(member.user.id, member.user.username, name);
+      if (result.kind === "exists") return reply(god.alreadyJoined(result.username, `${siteUrl()}/war/login`), { private: true });
+      return reply(god.welcome(name, result.username, result.password, joinUrl(result.username)), { private: true });
+    }
+    case "password": {
+      if (!member) return reply(god.cantReadAccount, { private: true });
+      const result = await resetWarPassword(member.user.id);
+      if (!result) return reply(god.noAccount, { private: true });
+      return reply(god.newPassword(result.username, result.password, joinUrl(result.username)), { private: true });
     }
     case "status": {
       const viewer = await viewerFor(member);
@@ -162,7 +165,7 @@ async function publicCommand(sub: Option, member: Interaction["member"]) {
       const state = await loadWarState(viewer);
       const chosen = read.kingdom();
       const list = (chosen ? [chosen] : factionIds).filter((f) => state.factions[f]);
-      if (list.length === 0) return reply("That kingdom's numbers are secret. Vaelith may sell you what he knows.", { private: true });
+      if (list.length === 0) return reply(god.secretNumbers, { private: true });
       const embeds = list.map((f) => {
         const s = state.factions[f]!;
         const held = Object.values(state.territories).filter((t) => t.owner === f).length;
@@ -181,7 +184,7 @@ async function publicCommand(sub: Option, member: Interaction["member"]) {
           ].map(([name, value]) => ({ name, value, inline: true })),
         };
       });
-      const note = state.source === "example" ? " (example numbers: the war hasn't been set up yet)" : "";
+      const note = state.source === "example" ? god.exampleNote : "";
       return reply(`**Day ${state.day} of 30**${note}`, { embeds, private: true });
     }
     case "territory": {
@@ -202,7 +205,7 @@ async function publicCommand(sub: Option, member: Interaction["member"]) {
       if (!viewer) return reply(notLinked(), { private: true });
       const state = await loadWarState(viewer);
       const moving = state.movements.filter((m) => m.status === "moving");
-      if (moving.length === 0) return reply("Nothing of yours on the move right now.", { private: true });
+      if (moving.length === 0) return reply(god.nothingMoving, { private: true });
       const lines = moving.map((m) => {
         const arrives = Math.floor(Date.parse(m.arrivesAt) / 1000);
         return `\`${m.id}\` ${factions[m.faction].name} ${m.kind}: ${findTerritory(m.from)?.name} → ${findTerritory(m.to)?.name}, arrives <t:${arrives}:R>`;
@@ -212,18 +215,18 @@ async function publicCommand(sub: Option, member: Interaction["member"]) {
     case "log": {
       const viewer = await viewerFor(member);
       if (!viewer) return reply(notLinked(), { private: true });
-      if (!(await isWarSetUp())) return reply("The war hasn't been set up yet.", { private: true });
+      if (!(await isWarSetUp())) return reply(god.notSetUp, { private: true });
       const count = read.int("count", 1, 25) ?? 10;
       const events =
         viewer === "all"
           ? await recentEvents(count, false)
-          : (await recentEvents(100, false)).filter((e) => e.faction === viewer).slice(0, count);
-      return reply(events.map((e) => `<t:${Math.floor(e.at.getTime() / 1000)}:R> ${e.summary}`).join("\n") || "Nothing recorded yet.", { private: true });
+          : (await recentEvents(100, false)).filter((e) => isAnnouncement(e.kind) || e.faction === viewer).slice(0, count);
+      return reply(events.map((e) => `<t:${Math.floor(e.at.getTime() / 1000)}:R> ${e.summary}`).join("\n") || god.nothingRecorded, { private: true });
     }
     case "rule": {
       const id = read.text("term", 60);
       const entry = findTerm(id) ?? glossary.find((g) => g.term.toLowerCase() === id.toLowerCase());
-      if (!entry) return reply(`No rule called "${id}". Try the rulebook: ${siteUrl()}/war/rules`, { private: true });
+      if (!entry) return reply(god.noRule(id, `${siteUrl()}/war/rules`), { private: true });
       const text = [plain(entry.short), ...(entry.more ?? []).map(plain), entry.missing ? `*Not settled yet: ${entry.missing}*` : ""].filter(Boolean).join("\n\n");
       return reply("", { private: true, embeds: [{ title: entry.term, description: text, url: `${siteUrl()}/war/rules#glossary` }] });
     }
@@ -231,7 +234,7 @@ async function publicCommand(sub: Option, member: Interaction["member"]) {
       return reply(`⚔️ Faction War: ${siteUrl()}/war
 🗺️ War map: ${siteUrl()}/war/map\n📖 Player's guide: ${siteUrl()}/war/rules\n📚 Full rulebook: ${siteUrl()}/war/rules/full`);
   }
-  return reply("Unknown command.", { private: true });
+  return reply(god.unknown, { private: true });
 }
 
 async function staffCommand(sub: Option, actor: string) {
@@ -240,56 +243,56 @@ async function staffCommand(sub: Option, actor: string) {
   if (sub.name === "setup") {
     const started = await setUpWar(actor);
     return started
-      ? reply("⚔️ **The war begins.** Day 1: every kingdom has 75,000 Gold and its home territories at Town Hall.")
-      : reply("The war is already set up. (Setup only runs once, so it can never wipe a war in progress.)", { private: true });
+      ? reply(god.warBegins)
+      : reply(god.alreadyBegun, { private: true });
   }
-  if (!(await isWarSetUp())) return reply("Run `/warstaff setup` first.", { private: true });
+  if (!(await isWarSetUp())) return reply(god.setupFirst, { private: true });
 
   switch (sub.name) {
     case "day": {
       const day = read.int("number", 1, 60)!;
       await setDay(actor, day);
-      return reply(`📅 **Day ${day}** of the war begins.`);
+      return reply(god.newDay(day));
     }
     case "adjust":
     case "set": {
       const f = read.kingdom()!;
       const stat = read.choice("stat", statKeys);
-      if (!stat) throw new InputError("Pick a stat.");
+      if (!stat) throw new InputError(god.pickStat);
       const mode = sub.name === "set" ? "set" : "add";
       const amount = mode === "set" ? read.int("value", 0, 1_000_000_000)! : read.int("amount", -100_000_000, 100_000_000)!;
       const now = await changeStat(actor, f, stat, amount, mode, read.text("reason"));
-      if (now === null) return reply("That kingdom isn't in the war.", { private: true });
-      return reply(`${factions[f].name} ${stat}: ${mode === "set" ? "set to " : amount >= 0 ? "+" : ""}${fmt(amount)} → now **${fmt(now)}**`);
+      if (now === null) return reply(god.notInWar, { private: true });
+      return reply(`${factions[f].name} ${stat}: ${mode === "set" ? "set to " : amount >= 0 ? "+" : ""}${fmt(amount)} → now **${fmt(now)}**. ${god.recorded}`, { private: true });
     }
     case "territory": {
       const t = read.place("name");
-      if (!t.home) return reply("Neutral ground can't be changed.", { private: true });
+      if (!t.home) return reply(god.neutralLocked, { private: true });
       const owner = read.kingdom();
       const tier: Tier | undefined = read.choice("tier", ["town-hall", "castle", "fortress"] as const);
       const troops = read.int("troops", 0, 10_000_000);
-      if (!owner && !tier && troops === undefined) return reply("Tell me what to change: kingdom, tier or troops.", { private: true });
+      if (!owner && !tier && troops === undefined) return reply(god.tellMeWhat, { private: true });
       const parts = [
         owner ? `now held by ${factions[owner].name}` : "",
         tier ? `now a ${tierNames[tier]}` : "",
         troops !== undefined ? `${fmt(troops)} troops` : "",
       ].filter(Boolean);
       await updateTerritory(actor, t.id, { owner, tier, troops }, `${t.name}: ${parts.join(", ")}.`);
-      return reply(`🏰 **${t.name}**: ${parts.join(", ")}.`);
+      return reply(`🏰 **${t.name}**: ${parts.join(", ")}. ${god.recorded}`, { private: troops !== undefined });
     }
     case "building":
     case "obstacle": {
       const t = read.place("name");
       const thing = read.text(sub.name, 40);
-      if (!thing) return reply(`Which ${sub.name}?`, { private: true });
+      if (!thing) return reply(god.which(sub.name), { private: true });
       const remove = read.choice("action", ["add", "remove"] as const) === "remove";
       const row = await getTerritoryRow(t.id);
-      if (!row) return reply("That territory isn't in the war.", { private: true });
+      if (!row) return reply(god.notInWar, { private: true });
       const field = sub.name === "building" ? "buildings" : "obstacles";
       const list = remove ? row[field].filter((x) => x.toLowerCase() !== thing.toLowerCase()) : [...new Set([...row[field], thing])];
       const what = remove ? (sub.name === "building" ? "loses" : "is cleared of") : sub.name === "building" ? "builds" : "is struck by";
       await updateTerritory(actor, t.id, { [field]: list }, `${t.name} ${what} ${thing}.`);
-      return reply(`${sub.name === "building" ? "🔨" : "✨"} **${t.name}** ${what} ${thing}.`);
+      return reply(`${sub.name === "building" ? "🔨" : "✨"} **${t.name}** ${what} ${thing}. ${god.recorded}`, { private: true });
     }
     case "envoy":
     case "attack":
@@ -298,7 +301,7 @@ async function staffCommand(sub: Option, actor: string) {
       const f = read.kingdom()!;
       const from = read.place("from");
       const to = read.place("to");
-      if (from.id === to.id) return reply("From and to are the same place.", { private: true });
+      if (from.id === to.id) return reply(god.samePlace, { private: true });
       const secret = read.bool("secret") ?? sub.name === "ambush";
       const { id, arrivesAt } = await startMovement(actor, {
         kind: sub.name,
@@ -317,9 +320,9 @@ async function staffCommand(sub: Option, actor: string) {
     case "resolve": {
       const id = read.text("id", 5).toUpperCase();
       const outcome = read.choice("outcome", ["arrived", "won", "lost", "cancelled"] as const);
-      if (!outcome) throw new InputError("Pick an outcome.");
+      if (!outcome) throw new InputError(god.pickOutcome);
       const movement = await resolveMovement(actor, id, outcome, read.text("note"));
-      if (!movement) return reply(`No movement with code \`${id}\`.`, { private: true });
+      if (!movement) return reply(god.noMovement(id), { private: true });
       let extra = "";
       if (read.bool("capture") && outcome === "won" && movement.kind === "attack") {
         const target = findTerritory(movement.toId);
@@ -335,14 +338,20 @@ async function staffCommand(sub: Option, actor: string) {
     }
     case "reveal": {
       const movement = await revealMovement(actor, read.text("id", 5).toUpperCase());
-      if (!movement) return reply("No movement with that code.", { private: true });
+      if (!movement) return reply(god.noMovement(read.text("id", 5).toUpperCase()), { private: true });
       return reply(`👁️ ${factions[movement.faction as FactionId]?.name}'s ${movement.kind} \`${movement.id}\` is discovered!`);
+    }
+    case "ruling": {
+      const text = read.text("text", 500);
+      if (!text) throw new InputError(god.badInput("text"));
+      await recordRuling(actor, text);
+      return reply(god.ruling(text, actor));
     }
     case "log": {
       const events = await recentEvents(read.int("count", 1, 25) ?? 15, true);
       const lines = events.map((e) => `<t:${Math.floor(e.at.getTime() / 1000)}:R> ${e.secret ? "🔒 " : ""}${e.summary} — <@${e.actor}>`);
-      return reply(lines.join("\n") || "Nothing recorded yet.", { private: true });
+      return reply(lines.join("\n") || god.nothingRecorded, { private: true });
     }
   }
-  return reply("Unknown command.", { private: true });
+  return reply(god.unknown, { private: true });
 }

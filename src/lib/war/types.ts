@@ -38,7 +38,7 @@ export type Movement = {
   status: MovementStatus;
 };
 
-export type WarEventItem = { id: string; at: string; faction: FactionId | null; summary: string };
+export type WarEventItem = { id: string; at: string; faction: FactionId | null; kind: string; summary: string };
 
 // Who is looking: one kingdom's members, staff (everything), or the public (land and tiers only).
 export type WarViewer = FactionId | "all" | null;

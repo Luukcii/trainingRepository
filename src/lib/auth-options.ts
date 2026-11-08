@@ -65,6 +65,11 @@ export const authOptions = {
     enabled: true,
     storage: "database",
     modelName: "rateLimit",
-    customRules: { "/sign-in/email": { window: 60, max: 5 }, "/sign-in/username": { window: 60, max: 5 } },
+    customRules: {
+      "/sign-in/email": { window: 60, max: 5 },
+      "/sign-in/username": { window: 60, max: 5 },
+      // Needs the current password, so it's a guessing door too (someone at an unlocked computer).
+      "/change-password": { window: 60, max: 5 },
+    },
   },
 } satisfies BetterAuthOptions;

@@ -57,11 +57,11 @@ export function exampleWarState(now = Date.now()): WarState {
     territories: territoryState,
     movements,
     events: [
-      { id: "ev1", at: at(-0.5), faction: "svaroth", summary: "Svaroth marches on Ōkawa no Sato from Kinzan-jō." },
-      { id: "ev2", at: at(-3), faction: "valdyruus", summary: "Valdyruus sends an Envoy of 600 troops to Dyflin." },
-      { id: "ev3", at: at(-4), faction: "valdyruus", summary: "Viking raiders take Grain from Saint's Covenant." },
-      { id: "ev4", at: at(-8), faction: "svaroth", summary: "Sunscar Reach holds against Kōgahara." },
-      { id: "ev5", at: at(-30), faction: "svaroth", summary: "Svaroth captures Kinzan-jō." },
+      { id: "ev1", at: at(-0.5), faction: "svaroth", kind: "example", summary: "Svaroth marches on Ōkawa no Sato from Kinzan-jō." },
+      { id: "ev2", at: at(-3), faction: "valdyruus", kind: "example", summary: "Valdyruus sends an Envoy of 600 troops to Dyflin." },
+      { id: "ev3", at: at(-4), faction: "valdyruus", kind: "example", summary: "Viking raiders take Grain from Saint's Covenant." },
+      { id: "ev4", at: at(-8), faction: "svaroth", kind: "example", summary: "Sunscar Reach holds against Kōgahara." },
+      { id: "ev5", at: at(-30), faction: "svaroth", kind: "example", summary: "Svaroth captures Kinzan-jō." },
     ],
   };
 }

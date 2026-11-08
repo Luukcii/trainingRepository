@@ -37,14 +37,5 @@ export default function WarLoginPage({ searchParams }: PageProps<"/war/login">) 
 
 async function LoginBody({ searchParams }: Pick<PageProps<"/war/login">, "searchParams">) {
   const params = await searchParams;
-  return (
-    <>
-      {params.joined === "1" && (
-        <p role="status" className="mb-4 rounded-md border border-emerald-500/40 px-3 py-2 text-sm">
-          Account made. Log in with your Discord username and new password.
-        </p>
-      )}
-      <WarLoginForm next={safeNext(params.next)} />
-    </>
-  );
+  return <WarLoginForm next={safeNext(params.next)} />;
 }

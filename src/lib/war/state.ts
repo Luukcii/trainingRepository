@@ -28,6 +28,10 @@ export async function loadWarState(viewer: WarViewer): Promise<WarState> {
 // rivals only see the weekly totals, decision 142). Everyone sees who holds each territory and its tier.
 // A kingdom's members also see their own numbers, the troops, buildings and obstacles on their own land,
 // their own movements, Attacks on their land, and their own news. Staff ("all") see everything public.
+// Kinds of war-log line that every visitor may read.
+export const announcementKinds = ["setup", "day", "ruling"] as const;
+export const isAnnouncement = (kind: string) => (announcementKinds as readonly string[]).includes(kind);
+
 export function scopeWarState(state: WarState, viewer: WarViewer): WarState {
   if (viewer === "all") return { ...state, viewer };
   const mine = (owner: FactionId | null) => viewer !== null && owner === viewer;
@@ -47,7 +51,8 @@ export function scopeWarState(state: WarState, viewer: WarViewer): WarState {
     movements: viewer
       ? state.movements.filter((m) => m.faction === viewer || (m.kind === "attack" && mine(state.territories[m.to]?.owner ?? null)))
       : [],
-    events: viewer ? state.events.filter((e) => e.faction === viewer) : [],
+    // Announcements (war start, new day, mods' rulings) are for everyone; the rest only for its own kingdom.
+    events: state.events.filter((e) => isAnnouncement(e.kind) || (viewer && e.faction === viewer)),
   };
 }
 
@@ -123,6 +128,7 @@ async function loadLiveState(): Promise<WarState | null> {
       id: e.id,
       at: e.at.toISOString(),
       faction: isFaction(e.faction) ? e.faction : null,
+      kind: e.kind,
       summary: e.summary,
     })),
   };

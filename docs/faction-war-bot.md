@@ -1,6 +1,6 @@
-# Faction war: connecting the Discord bot
+# Faction war: connecting God, the Discord bot
 
-The bot lives inside the website. Discord sends every `/war` and `/warstaff` command to
+The bot is called **God** (name it that in the Developer Portal). It lives inside the website. Everything God says is in `src/lib/discord/voice.ts`. Discord sends every `/war` and `/warstaff` command to
 `https://training-repository-ten.vercel.app/api/discord/interactions`; the site checks Discord's signature,
 updates the war in the database, and replies. The war map reads the same database, so anything staff record
 in Discord shows up on the map within 30 seconds.
@@ -53,11 +53,12 @@ The bot token is a password for the bot. Only the command-registration script us
 
 | Command | Who | What it does |
 |---|---|---|
-| `/war join` | everyone | Private one-time link (30 min) to make a war account tied to your Discord |
+| `/war join` | everyone | God makes your war account, tied to your Discord, and privately gives you a password + the sign-up page link |
+| `/war password` | players | New password (private); the old one stops working and every device is logged out |
 | `/war status [kingdom]` | your faction | Your kingdom's Gold, troops, Faith, Fame, Trade, AP (private reply; staff see all three) |
 | `/war territory name` | everyone | Who holds it and its tier; troops, buildings and obstacles only if it's yours (private reply) |
 | `/war moving` | your faction | Your kingdom's Envoys, Attacks and raids, plus Attacks on your land (private reply) |
-| `/war log` | your faction | Your kingdom's news (private reply) |
+| `/war log` | your faction | Your kingdom's news plus announcements and rulings (private reply) |
 | `/war rule term` | everyone | Explains a rule (only you see it) |
 | `/war map` | everyone | Links to the map and rulebooks |
 | `/warstaff setup` | staff | Starts the war (refuses if one exists) |
@@ -70,12 +71,14 @@ The bot token is a password for the bot. Only the command-registration script us
 | `/warstaff envoy·attack·ambush·raid kingdom from to [hours] [troops] [cargo] [secret]` | staff | Starts a movement; replies with a 5-letter code |
 | `/warstaff resolve id outcome [capture] [note]` | staff | Arrived / won / lost / called off; `capture` hands a won Attack's target over |
 | `/warstaff reveal id` | staff | Puts a secret movement on the public map |
+| `/warstaff ruling text` | staff | Posts a mods' ruling publicly in God's voice and keeps it in the war log (Claude copies it into the Hardset Register next session) |
 | `/warstaff log` | staff | All news including secret entries (only you see it) |
 
 **Fog of war (8 Nov):** the public (and the public map) see only who holds each territory and its tier. A player
 sees their own kingdom's numbers, land, movements and news, on the site and in the bot; staff see everything.
 Secret movements (ambushes by default, smuggled Envoys when `secret` is set) never leave the server at all.
-Players link Discord through `/war join`, so the bot knows which kingdom each Discord account belongs to.
+Changes to a kingdom's numbers, troops, buildings and obstacles are confirmed only to the mod who made them.
+Players link Discord through `/war join`, so God knows which kingdom each Discord account belongs to.
 
 ## Safety built in
 

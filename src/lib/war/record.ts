@@ -144,6 +144,13 @@ export async function revealMovement(actor: string, id: string) {
   return movement;
 }
 
+// A ruling from the mods, in their words. God announces it in Discord; it stays in the war log for good,
+// and Claude copies new rulings into the Hardset Register at the next session (the Register is Max's file,
+// on his computer, which the bot can't reach).
+export async function recordRuling(actor: string, text: string) {
+  await logEvent(actor, null, "ruling", `Ruling: ${text}`);
+}
+
 export async function recentEvents(limit: number, includeSecret: boolean) {
   const query = db.select().from(warEvent);
   return (includeSecret ? query : query.where(eq(warEvent.secret, false))).orderBy(desc(warEvent.at)).limit(limit);

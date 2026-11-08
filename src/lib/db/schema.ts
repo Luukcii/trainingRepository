@@ -317,7 +317,8 @@ export const warSetting = pgTable("war_setting", {
   value: text("value").notNull(),
 });
 
-// One-time faction-war sign-up links. The Discord bot makes one when a player types /war join, so the
+// UNUSED since 8 Nov (God now makes the account directly, see lib/war/accounts.ts). Kept because dropping a
+// table needs the owner's OK. Was: one-time faction-war sign-up links. The Discord bot made one when a player typed /war join, so the
 // Discord account is proven. Like invites, the database keeps only the token's fingerprint (hash).
 export const warJoinToken = pgTable(
   "war_join_token",
