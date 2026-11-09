@@ -53,6 +53,11 @@ export async function recordGodMind(actor: string, mind: string, label: string) 
   await logEvent(actor, null, "setting", `/war ask answered by: ${label}.`);
 }
 
+// A mod hushes one person (God and Odin won't answer them), or lifts it. Staff-only log line.
+export async function recordHush(actor: string, target: string, hushed: boolean) {
+  await logEvent(actor, null, "setting", hushed ? `God and Odin hushed for <@${target}>.` : `God and Odin may answer <@${target}> again.`);
+}
+
 export async function setDay(actor: string, day: number) {
   await db.insert(warSetting).values({ key: "day", value: String(day) }).onConflictDoUpdate({ target: warSetting.key, set: { value: String(day) } });
   await logEvent(actor, null, "day", `Day ${day} begins.`);

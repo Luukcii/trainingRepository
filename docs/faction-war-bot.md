@@ -42,8 +42,8 @@ billed per use. A Claude Pro/Max subscription doesn't cover it.
 - Console → **Billing**: add credit and set a **monthly spend limit** (e.g. $5). That limit is the hard brake.
 - Console → **API Keys** → create a key named `hafw-god`. Add it to Vercel (production, sensitive) as
   `ANTHROPIC_API_KEY`, and to `.env.local` to try it locally. Until then God says he doesn't answer free questions yet.
-- Expected cost: God (Haiku) about 0.1¢ an answer, Odin (Opus) about 2–4¢. Limits: 5 questions an hour per player (30 for staff),
-  200 a day in total. Mods see the last 24 hours' count and cost with `/warstaff oscillate`.
+- Expected cost: God (Haiku) about 0.1¢ an answer, Odin (Opus) about 2–4¢. Limits: 15 messages an hour per player (40 for staff),
+  300 a day in total. Mods see the last 24 hours' count and cost with `/warstaff oscillate`.
 
 ## 3. Claude: switch it on (next session on Max's computer)
 
@@ -71,7 +71,7 @@ billed per use. A Claude Pro/Max subscription doesn't cover it.
 | `/war territory name` | everyone | Who holds it and its tier; troops, buildings and obstacles only if it's yours (private reply) |
 | `/war moving` | your faction | Your kingdom's Envoys, Attacks and raids, plus Attacks on your land (private reply) |
 | `/war log` | your faction | Your kingdom's news plus announcements and rulings (private reply) |
-| `/war ask question` | everyone | God answers in his own words (or Odin, when the mods call him), from the rulebook only (only you see it). Off until the owner adds the AI key |
+| `/war ask question` | everyone | Starts a conversation with God (or Odin, when the mods call him). Only you see it. Press **Reply** under the answer to keep talking; they remember the last 5 exchanges for 30 minutes. Off until the owner adds the AI key |
 | `/war rule term` | everyone | Explains a rule (only you see it) |
 | `/war map` | everyone | Links to the map and rulebooks |
 | `/warstaff setup` | staff | Starts the war (refuses if one exists) |
@@ -85,6 +85,7 @@ billed per use. A Claude Pro/Max subscription doesn't cover it.
 | `/warstaff resolve id outcome [capture] [note]` | staff | Arrived / won / lost / called off; `capture` hands a won Attack's target over |
 | `/warstaff reveal id` | staff | Puts a secret movement on the public map |
 | `/warstaff ruling text` | staff | Posts a mods' ruling publicly in God's voice and keeps it in the war log (Claude copies it into the Hardset Register next session) |
+| `/warstaff hush user [lift]` | staff | God and Odin stop answering that person (or, with `lift`, start again). Logged |
 | `/warstaff oscillate [god/odin/off]` | staff | Who answers `/war ask`: **God** (Haiku: quick, cheap, the default), **Odin** (Opus: the wise old wanderer, costs more) or nobody. Empty = show the setting and the last 24 hours' questions and cost |
 | `/warstaff log` | staff | All news including secret entries (only you see it) |
 
@@ -101,7 +102,11 @@ Players link Discord through `/war join`, so God knows which kingdom each Discor
 - **Staff checked on our server**: Discord hides `/warstaff` from non-staff, and the site checks again. Staff = Discord admins / Manage Server, the `WAR_STAFF_ROLE_ID` role, or anyone Max made a Mod or Tech on `/admin`. A site Mod without Manage Server won't *see* `/warstaff` until Max allows it for them in Discord: Server Settings → Integrations → God → `/warstaff`.
 - **No pings**: text typed into commands can't trigger `@everyone` when the bot repeats it.
 - **Least privilege**: the website holds only the public key; the bot token stays in `.env.tools`.
-- **God's free answers (`/war ask`)**: he reads only the public rulebook and glossary, never live war numbers, so he
-  can't leak a kingdom's secrets. He has no tools, so he can't change anything. Answers are private to the asker, can't
-  ping anyone, and end with "The mods' rulings outrank my words." He's told to send anything unsettled to the mods and never
-  to guess. The question text isn't stored, only who asked, when, and the token counts (for limits and cost).
+- **Talking with God and Odin (`/war ask` + Reply)**: they chat freely, in character, but read only the public rulebook
+  and glossary, never live war numbers, so they can't leak a kingdom's secrets. No tools, so they can't change anything.
+  Answers are private to the person talking and can't ping anyone. Their rules sit where players can't reach them: a chat
+  message claiming to be from a mod or "the system" is just a player's message (real mods use `/warstaff`). They never
+  invent rules or numbers, grant anything, make rulings or take sides. Only the person who started a conversation can
+  continue it; it remembers the last 5 exchanges and is deleted 30 minutes after the last message. Otherwise only who
+  asked, when, and the token counts are kept (for limits and cost). Misuse: `/warstaff hush` one person, or
+  `/warstaff oscillate off` for everyone.

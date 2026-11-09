@@ -5,6 +5,8 @@
 // Rules for new lines: short sentences, no old-fashioned "thee/thou", "child" at most once per reply,
 // never mocking. Firm "No." when refusing. Point to the mods for anything he can't settle.
 
+const quote = (text: string) => { const line = text.replace(/\s+/g, " ").trim(); return `> ${line.length > 200 ? `${line.slice(0, 200)}…` : line}`; };
+
 export const god = {
   // Access
   wrongServer: "I answer only in the HAFW server.",
@@ -63,18 +65,24 @@ export const god = {
   noMovement: (id: string) => `There's no movement with the code \`${id}\`.`,
   recorded: "Recorded.",
 
-  // Free questions (/war ask). His answers themselves are written by the AI, kept in this voice by ask.ts.
+  // Talking with God (/war ask, then the Reply button). His answers are written by the AI, in the voice set in ask.ts.
   askAsleep: (url: string) => `I don't answer free questions yet. The mods haven't opened that door. Try \`/war rule\`, or read the rulebook: ${url}`,
   askSilenced: "The mods have asked me to keep silent for now. Try `/war rule`, or ask a mod.",
-  askTooMany: "You've asked enough for this hour. Think on what I told you, and come back later.",
-  askRestingToday: "I've answered many questions today. I rest now. Ask again tomorrow, or ask a mod.",
+  askTooMany: "You've spoken with me enough for this hour. Think on what I told you, and come back later.",
+  askRestingToday: "I've spoken with many today. I rest now. Ask again tomorrow, or ask a mod.",
   askFailed: "I couldn't find the words just now. Try again in a little while, or ask a mod.",
   askRefused: "No. That I will not answer.",
-  askAnswer: (question: string, answer: string) => `> ${question.replace(/\s+/g, " ")}\n\n${answer}\n-# God has answered. The mods' rulings outrank my words.`,
+  // The reminder shows once, under the first answer of a conversation, so the chat doesn't read like a form letter.
+  askAnswer: (message: string, answer: string, first: boolean) => `${quote(message)}\n\n${answer}${first ? "\n-# The mods' rulings outrank my words." : ""}`,
+  replyLabel: "Reply to God",
+  chatOver: "That conversation has ended. Start a new one with `/war ask`.",
+  hushed: "The mods have asked me not to answer you for now. Take it up with them.",
+  hushSet: (who: string) => `I won't answer <@${who}> until the mods say otherwise. Recorded.`,
+  hushLifted: (who: string) => `<@${who}> may speak with me again. Recorded.`,
   mindSet: (label: string, questions: number, dollars: number, awake: boolean) =>
     [
       `Who answers /war ask: **${label}**. ${awake ? "" : "(Asleep until the owner adds the AI key.)"}`.trim(),
-      `Last 24 hours: ${questions} question${questions === 1 ? "" : "s"}, about $${dollars.toFixed(2)}.`,
+      `Last 24 hours: ${questions} message${questions === 1 ? "" : "s"}, about $${dollars.toFixed(2)}.`,
     ].join("\n"),
 };
 
@@ -82,7 +90,8 @@ export const god = {
 // An old wanderer who gave an eye for wisdom. Short, weighty lines; calls people "warrior"; favours no kingdom.
 // Only his answers are his: limits and errors before the question stay in God's voice, since God is the bot.
 export const odin = {
-  askAnswer: (question: string, answer: string) => `> ${question.replace(/\s+/g, " ")}\n\n${answer}\n-# Odin has spoken. The mods' rulings outrank him.`,
+  askAnswer: (message: string, answer: string, first: boolean) => `${quote(message)}\n\n${answer}${first ? "\n-# The mods' rulings outrank Odin." : ""}`,
+  replyLabel: "Reply to Odin",
   askRefused: "No, warrior. That I will not answer.",
   askFailed: "The ravens came back with nothing. Ask again in a little while, or ask a mod.",
 };

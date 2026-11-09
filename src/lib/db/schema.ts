@@ -333,6 +333,19 @@ export const godQuestion = pgTable(
   (t) => [index("god_question_discord_at_idx").on(t.discordId, t.at), index("god_question_at_idx").on(t.at)],
 );
 
+// Ongoing conversations with God or Odin (the Reply button), so they remember what was said.
+// Short-lived: deleted 30 minutes after the last message (ask.ts), and only the last few turns are kept.
+export const godChat = pgTable(
+  "god_chat",
+  {
+    id: text("id").primaryKey(), // also in the Reply button, so only this chat can be continued
+    discordId: text("discord_id").notNull(), // only this person may continue it
+    turns: jsonb("turns").$type<{ role: "user" | "assistant"; text: string }[]>().notNull().default([]),
+    updatedAt: timestamp("updated_at").notNull().defaultNow(),
+  },
+  (t) => [index("god_chat_updated_idx").on(t.updatedAt)],
+);
+
 // UNUSED since 8 Nov (God now makes the account directly, see lib/war/accounts.ts). Kept because dropping a
 // table needs the owner's OK. Was: one-time faction-war sign-up links. The Discord bot made one when a player typed /war join, so the
 // Discord account is proven. Like invites, the database keeps only the token's fingerprint (hash).

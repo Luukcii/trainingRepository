@@ -8,7 +8,23 @@ import { stripMarkup } from "@/lib/war/markup";
 import { isAnnouncement, loadWarState } from "@/lib/war/state";
 import { createWarAccount, factionOfDiscordUser, isSiteWarStaff, resetWarPassword } from "@/lib/war/accounts";
 import { god } from "./voice";
-import { answerQuestion, askConfigured, askUsageToday, checkAskLimit, followUpTarget, getGodMind, godMinds, QUESTION_MAX, reserveQuestion } from "./ask";
+import {
+  answerQuestion,
+  askConfigured,
+  askUsageToday,
+  CHAT_ID,
+  chatIsOpen,
+  checkAskLimit,
+  followUpTarget,
+  getGodMind,
+  godMinds,
+  isHushed,
+  MESSAGE_MAX,
+  reserveQuestion,
+  setHushed,
+  startChat,
+  voiceOf,
+} from "./ask";
 import { tierNames, type Tier, type WarViewer } from "@/lib/war/types";
 import {
   changeStat,
@@ -16,6 +32,7 @@ import {
   isWarSetUp,
   recentEvents,
   recordGodMind,
+  recordHush,
   recordRuling,
   resolveMovement,
   revealMovement,
@@ -29,22 +46,26 @@ import {
 // Discord's message types and flags (see Discord's "Interactions" docs).
 export const PING = 1;
 const COMMAND = 2;
+const BUTTON = 3; // someone pressed a button on one of God's messages (Reply)
 const AUTOCOMPLETE = 4;
+const BOX_SENT = 5; // someone sent the text box (modal) a button opened
 const REPLY = 4;
 const AUTOCOMPLETE_RESULT = 8;
 const THINKING = 5; // "God is thinking…": we fill in the real reply a moment later
+const OPEN_BOX = 9; // show a text box (modal) to type into
 const EPHEMERAL = 64; // only the person who ran the command sees the reply
 
 const ADMINISTRATOR = BigInt(1 << 3);
 const MANAGE_GUILD = BigInt(1 << 5);
 
 type Option = { name: string; type: number; value?: string | number | boolean; focused?: boolean; options?: Option[] };
+type BoxPart = { type: number; custom_id?: string; value?: string; components?: BoxPart[]; component?: BoxPart };
 export type Interaction = {
   type: number;
   guild_id?: string;
   application_id?: string;
   token?: string; // lets us edit our reply for 15 minutes (used by /war ask)
-  data?: { name: string; options?: Option[] };
+  data?: { name?: string; options?: Option[]; custom_id?: string; components?: BoxPart[] }; // custom_id + components: buttons and boxes
   member?: { user: { id: string; username?: string; global_name?: string | null }; permissions?: string; roles?: string[]; nick?: string | null };
 };
 
@@ -80,6 +101,7 @@ function reader(options: Option[] = []) {
     bool: (name: string) => get(name, z.boolean().optional()),
     kingdom: (name = "kingdom") => get(name, z.enum(factionIds).optional()),
     choice: <T extends string>(name: string, allowed: readonly [T, ...T[]]) => get(name, z.enum(allowed).optional()),
+    user: (name: string) => get(name, z.string().regex(/^\d{5,25}$/)),
     place: (name: string) => {
       const value = get(name, z.string().trim().min(1).max(60).optional());
       const t = value ? matchTerritory(value) : undefined;
@@ -108,6 +130,17 @@ export async function handleInteraction(interaction: Interaction, defer?: Defer)
   // they could run /warstaff there and rewrite our war.
   if (interaction.guild_id !== process.env.DISCORD_GUILD_ID) {
     return reply(god.wrongServer, { private: true });
+  }
+
+  // The Reply button under an answer from God or Odin, and the text box it opens.
+  if (interaction.type === BUTTON || interaction.type === BOX_SENT) {
+    try {
+      return await chatInteraction(interaction, defer);
+    } catch (error) {
+      if (error instanceof InputError) return reply(error.message, { private: true });
+      console.error("discord chat failed:", error instanceof Error ? error.name : "unknown");
+      return reply(god.askFailed, { private: true });
+    }
   }
 
   const sub = interaction.data?.options?.[0];
@@ -153,24 +186,71 @@ async function viewerFor(member: Interaction["member"]): Promise<WarViewer> {
   return factionOfDiscordUser(member.user.id);
 }
 
+// Shared by /war ask and the Reply box: every check, then "thinking…" at once and the answer a moment later.
+async function startAnswer(interaction: Interaction, message: string, chatId: string | null, defer?: Defer) {
+  const member = interaction.member!;
+  if (!askConfigured() || !defer) return reply(god.askAsleep(`${siteUrl()}/war/rules`), { private: true });
+  const speaker = await getGodMind();
+  if (speaker === "off") return reply(god.askSilenced, { private: true });
+  if (await isHushed(member.user.id)) return reply(god.hushed, { private: true });
+  const limit = await checkAskLimit(member.user.id, await isStaff(member));
+  if (limit !== "ok") return reply(limit === "hour" ? god.askTooMany : god.askRestingToday, { private: true });
+  const target = followUpTarget(interaction.application_id, interaction.token);
+  if (!target) return reply(god.askFailed, { private: true });
+  const chat = chatId ?? (await startChat(member.user.id));
+  const id = await reserveQuestion(member.user.id, speaker);
+  defer(() => answerQuestion(id, chat, message, speaker, target));
+  return { type: THINKING, data: { flags: EPHEMERAL } }; // only the person talking sees "thinking" and the answer
+}
+
+// Digs the typed text out of a submitted box (Discord nests it in rows).
+function boxValue(parts: BoxPart[] = [], id: string): string | undefined {
+  for (const part of parts) {
+    if (part.custom_id === id && typeof part.value === "string") return part.value;
+    const inner = boxValue([...(part.components ?? []), ...(part.component ? [part.component] : [])], id);
+    if (inner !== undefined) return inner;
+  }
+  return undefined;
+}
+
+// "god:reply:<chat>" (the button) opens a box; "god:say:<chat>" (the box) sends the message on.
+// The chat must belong to whoever pressed it and still be open (30 minutes since the last message).
+async function chatInteraction(interaction: Interaction, defer?: Defer) {
+  const member = interaction.member;
+  const [prefix, action, chatId = ""] = (interaction.data?.custom_id ?? "").split(":");
+  if (!member || prefix !== "god" || !CHAT_ID.test(chatId)) return reply(god.unknown, { private: true });
+  if (!(await chatIsOpen(chatId, member.user.id))) return reply(god.chatOver, { private: true });
+
+  if (interaction.type === BUTTON && action === "reply") {
+    const speaker = await getGodMind();
+    if (speaker === "off") return reply(god.askSilenced, { private: true });
+    return {
+      type: OPEN_BOX,
+      data: {
+        custom_id: `god:say:${chatId}`,
+        title: voiceOf(speaker).replyLabel,
+        components: [{ type: 1, components: [{ type: 4, custom_id: "message", label: "Your message", style: 2, min_length: 1, max_length: MESSAGE_MAX, required: true }] }],
+      },
+    };
+  }
+  if (interaction.type === BOX_SENT && action === "say") {
+    const typed = z.string().trim().min(1).max(MESSAGE_MAX).safeParse(boxValue(interaction.data?.components, "message"));
+    if (!typed.success) throw new InputError(god.badInput("message"));
+    return startAnswer(interaction, typed.data, chatId, defer);
+  }
+  return reply(god.unknown, { private: true });
+}
+
 async function publicCommand(sub: Option, interaction: Interaction, defer?: Defer) {
   const member = interaction.member;
   const read = reader(sub.options);
   switch (sub.name) {
     case "ask": {
+      // Starts a conversation with God (or Odin, if the mods have called him). The Reply button continues it.
       if (!member) return reply(god.cantReadAccount, { private: true });
-      const question = read.text("question", QUESTION_MAX);
-      if (!question) throw new InputError(god.badInput("question"));
-      if (!askConfigured() || !defer) return reply(god.askAsleep(`${siteUrl()}/war/rules`), { private: true });
-      const mind = await getGodMind();
-      if (mind === "off") return reply(god.askSilenced, { private: true });
-      const limit = await checkAskLimit(member.user.id, await isStaff(member));
-      if (limit !== "ok") return reply(limit === "hour" ? god.askTooMany : god.askRestingToday, { private: true });
-      const target = followUpTarget(interaction.application_id, interaction.token);
-      if (!target) return reply(god.askFailed, { private: true });
-      const id = await reserveQuestion(member.user.id, mind);
-      defer(() => answerQuestion(id, question, mind, target));
-      return { type: THINKING, data: { flags: EPHEMERAL } }; // only the asker sees "thinking" and the answer
+      const message = read.text("question", MESSAGE_MAX);
+      if (!message) throw new InputError(god.badInput("question"));
+      return startAnswer(interaction, message, null, defer);
     }
     case "join": {
       // Discord itself tells us who ran the command, so the account is tied to a proven Discord account.
@@ -280,6 +360,14 @@ async function staffCommand(sub: Option, actor: string) {
     if (chosen) await recordGodMind(actor, chosen, labels[chosen]);
     const usage = await askUsageToday();
     return reply(god.mindSet(labels[chosen ?? (await getGodMind())], usage.questions, usage.dollars, askConfigured()), { private: true });
+  }
+  if (sub.name === "hush") {
+    // Stops God and Odin answering one person (or lets them speak again). Works before the war too.
+    const who = read.user("user");
+    const lift = read.bool("lift") ?? false;
+    await setHushed(who, !lift);
+    await recordHush(actor, who, !lift);
+    return reply(lift ? god.hushLifted(who) : god.hushSet(who), { private: true });
   }
   if (!(await isWarSetUp())) return reply(god.setupFirst, { private: true });
 
