@@ -7,7 +7,8 @@
 import { randomInt } from "node:crypto";
 import { and, eq, inArray, isNull } from "drizzle-orm";
 import { db } from "@/lib/db";
-import { user } from "@/lib/db/schema";
+import { user, warSetting } from "@/lib/db/schema";
+import { findTitle, type StaffTitleKey } from "@/content/war/titles";
 import { auth } from "@/lib/auth";
 import { signupAuth } from "@/lib/signup-auth";
 import { factionIds, type FactionId } from "@/content/war/map";
@@ -54,13 +55,29 @@ export async function createWarAccount(discordId: string, discordUsername: strin
     userId = created.id;
     // Mark it as a war account and tie it to the proven Discord account. discordId is unique, so two
     // /war join at the same moment can't make two accounts: the second fails here and is removed.
-    await db.update(user).set({ role: "player", discordId }).where(eq(user.id, userId));
+    await db.update(user).set({ role: "player", discordId, warTitle: await takeTitleOnJoin(username) }).where(eq(user.id, userId));
     return { kind: "created", username, password };
   } catch (error) {
     // Never leave a half-made account behind: it would be a plain member with the members' site open.
     if (userId) await db.delete(user).where(eq(user.id, userId)).catch(() => {});
     throw error;
   }
+}
+
+// Badges waiting for someone who hasn't joined yet (Max, 9 Nov): kept by Discord username in war_setting
+// ("join_title:<username>"), not in the code, because the repo is public. On /war join the badge is put on
+// the new account and the waiting entry is removed. A badge (title) is only a name tag: it grants no powers;
+// mod/tech powers come from the role, which only Max sets on /admin.
+const joinTitleKey = (username: string) => `join_title:${cleanUsername(username)}`;
+
+export async function setTitleOnJoin(discordUsername: string, title: StaffTitleKey) {
+  const key = joinTitleKey(discordUsername);
+  await db.insert(warSetting).values({ key, value: title }).onConflictDoUpdate({ target: warSetting.key, set: { value: title } });
+}
+
+async function takeTitleOnJoin(username: string): Promise<StaffTitleKey | null> {
+  const [row] = await db.delete(warSetting).where(eq(warSetting.key, joinTitleKey(username))).returning({ value: warSetting.value });
+  return findTitle(row?.value)?.key ?? null;
 }
 
 // Called by God for /war password. A fresh password, and everyone logged in as this player is logged out,
