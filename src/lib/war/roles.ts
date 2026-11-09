@@ -7,7 +7,8 @@ export const warStaffRoles = ["mod", "tech"] as const;
 export const warAccountRoles = ["player", ...warStaffRoles] as const; // roles a Discord-made account can hold
 export type WarAccountRole = (typeof warAccountRoles)[number];
 
-export const roleTitle: Record<string, string> = { admin: "Admin", mod: "Mod", tech: "Tech", player: "Player" };
+// Max's own title is "God": the admin role, above every mod and tech, with every power the site has.
+export const roleTitle: Record<string, string> = { admin: "God", mod: "Mod", tech: "Tech", player: "Player" };
 
 // Sees every faction on the site, and counts as staff for God's /warstaff commands (lib/discord/handle.ts).
 export function isWarStaffRole(role: string | null | undefined) {
