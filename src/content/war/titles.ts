@@ -3,7 +3,7 @@
 // and logged-out visitors aren't told they exist.
 export const staffTitles = [
   { key: "owner", label: "Owner", public: true },
-  { key: "hr", label: "HR", public: true },
+  { key: "hr", label: "Head Human Resources", public: true },
   { key: "chief-server-technician", label: "Chief Server Technician", public: true },
   { key: "pope", label: "Pope", public: true },
   { key: "tech", label: "Tech", public: false },

@@ -1,4 +1,4 @@
-// Small coloured pills. RoleBadge: what someone can do (God = Max, Mod, Tech). TitleBadge: their position (Pope, HR…).
+// Small coloured pills. RoleBadge: what someone can do (Chaos Coordinator = Max, Mod, Tech). TitleBadge: their position (Pope, HR…).
 import { roleTitle } from "@/lib/war/roles";
 import { findTitle } from "@/content/war/titles";
 
