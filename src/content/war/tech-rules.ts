@@ -8,7 +8,7 @@ const TIERS = "Town Hall / Castle / Fortress";
 export const techRules: Rulebook = {
   title: "Faction War: Full Rulebook",
   subtitle: "Every rule and number, organised for leaders, owners and staff. Tap any underlined term for its definition.",
-  asOf: "8 Nov 2026 (Hardset Register through decision 172)",
+  asOf: "9 Nov 2026 (Hardset Register through decision 177)",
   sections: [
     {
       id: "scope",
@@ -71,9 +71,8 @@ export const techRules: Rulebook = {
             ["[[faction-leader|Faction leader]]", "Spends [[ap|AP]]: Attack, Ambush, Proselytize, Tax, Harvest, Construct, doubling an Envoy. Buys Store troops; trades troops with other leaders; match upgrades; hands out and overrides territories; resource discovery anywhere in the kingdom; pledges the capital to Blood of the Land; picks who sits out for Blood of the Saint."],
             ["[[territory-owner|Territory owner]]", "Builds and upgrades on own land; sells own Stone and Lumber; Envoys; Hire; trades with any territory; buys Black Market troops, goods, information, the Diamond, Sabotage and obstacles; Banner, Roads and Wards on own land. No AP."],
             ["[[member|Member]]", "Daily pay; contracts, Store characters for themselves, bounties; gifts Gold to their owner or leader; Gold offerings at shrines; Blood of the Land at 1,125 a day; Faith shop."],
-            ["[[mercenary|Mercenary]]", "Hired per slot; raids; escorts; bounties; Black Market goods and contracts (not information or obstacles); Blood of the Land at 1,125 a day. Trades only with Grape, the Pope, the Chief Server Tech and Vaelith."],
+            ["[[mercenary|Mercenary]]", "Hired per slot; raids; escorts; bounties; Black Market goods and contracts (not information or obstacles); Blood of the Land at 1,125 a day. Trades only with Grape, the Chief Server Tech and Vaelith."],
             ["[[vaelith|Vaelith]]", "Black Market keeper; knows everything; prices information; must accept Blood of the Sacrifice."],
-            ["[[pope|Pope]]", "Sets the Faith value of Gold offerings (Vaelith can too)."],
           ],
         },
       ],
@@ -454,7 +453,7 @@ export const techRules: Rulebook = {
             "Svaroth: deeds ×1.25 on top, and 50 Faith to the new owner of every territory it captures.",
             "Holy days (Faith ×2) in the second and last weeks of the month: Saturday for everyone, plus Sunday for Svaroth.",
             "[[proselytize|Proselytize]] moves 1,000 Faith from the defending kingdom to the attacker per win. A kingdom with less loses what it has.",
-            "Faith can't be traded; it can only be given to the leader or spent. Gold offerings at shrines are worth what the Pope or Vaelith decide.",
+            "Faith can't be traded; it can only be given to the leader or spent. Gold offerings at shrines are worth what Vaelith decides.",
           ],
         },
         {
@@ -522,7 +521,7 @@ export const techRules: Rulebook = {
           items: [
             "Based at Grimgarth; no leader; anyone may join. Buildings there make resources but can't be upgraded; Gold is free to use, everything else counts only once brought into the war.",
             "Hire: 4,000 / 10,000 / 20,000 per slot × Reputation, for duels, Attacks, defences, Ambushes or guarding an Envoy. The Mercenary keeps half and finds players for extra slots, or plays short-handed.",
-            "Trade only with Grape, the Pope, the Chief Server Tech and Vaelith, and among themselves without limit; never with territories.",
+            "Trade only with Grape, the Chief Server Tech and Vaelith, and among themselves without limit; never with territories.",
             "Anyone who joins a kingdom mid-war plays for it from the next quarter (days 1–7, 8–14, 15–21, 22–30).",
             "Fortune: the Mercenary with the most Gold at day 30 gets a unique role until the next war ends, keeps their tier, and gets a real prize.",
           ],
@@ -579,7 +578,6 @@ export const techRules: Rulebook = {
           type: "list",
           items: [
             "Names for the shrine defender's role and the Mercenaries' Fortune role, and any extra prizes for the winners (Max announces them when he presents the war).",
-            "How the Pope is chosen, and any other powers.",
           ],
         },
       ],

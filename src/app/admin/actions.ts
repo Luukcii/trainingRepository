@@ -9,7 +9,7 @@ import { roleTitle, warAccountRoles } from "@/lib/war/roles";
 import { setWarRoleAndTitle } from "@/lib/war/staff";
 import { findTitle, staffTitleKeys } from "@/content/war/titles";
 
-// Set a war account's role (player / mod / tech) and title (Pope, HR… or none). Admin only, checked here: a
+// Set a war account's role (player / mod / tech) and title (Owner, Head Human Resources… or none). Admin only, checked here: a
 // Server Action is a public door, so anyone could call it with a made-up form. Zod allows only those roles and
 // titles, and setWarRoleAndTitle only touches Discord-made accounts, so this can never create another admin.
 const roleForm = z.object({

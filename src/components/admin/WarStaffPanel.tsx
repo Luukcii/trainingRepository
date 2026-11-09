@@ -1,5 +1,5 @@
 // Admin only: every Discord-made war account, with a role and a title. Role = what they can DO (Player, or
-// Mod/Tech = mod mode: every faction visible). Title = what people SEE on /war/staff (Pope, HR, Faction Leader…).
+// Mod/Tech = mod mode: every faction visible). Title = what people SEE on /war/staff (Owner, Head Human Resources, Faction Leader…).
 // Reads the database, so it sits inside <Suspense>.
 import Link from "next/link";
 import { listWarAccounts } from "@/lib/war/staff";
@@ -18,7 +18,7 @@ export async function WarStaffPanel() {
       <p className="mb-4 text-sm text-muted">
         <strong>Role</strong> is what they can do: Mod or Tech = mod mode (every faction visible, God&apos;s staff commands).{" "}
         <strong>Title</strong> is what people see on the <Link href="/war/staff" className="underline">staff page</Link>: Owner,
-        HR, Chief Server Technician and Pope are shown to everyone; the others only to logged-in players. Accounts appear
+        Head Human Resources and Chief Server Technician are shown to everyone; the others only to logged-in players. Accounts appear
         here once they&apos;ve joined through God (<code>/war join</code>).
       </p>
       {accounts.length === 0 ? (

@@ -155,16 +155,10 @@ export const glossary: GlossaryEntry[] = [
     short: "A player of no kingdom, based at [[grimgarth|Grimgarth]], who fights for whoever [[hire|hires]] them and plays any hero.",
     more: [
       "Hired for duels, Attacks, defences, Ambushes or guarding an Envoy; they keep half the fee. They also [[raid]] Envoys, run [[escort|escorts]] and claim [[bounty|bounties]]. They get 50 Gold a day like members.",
-      "They trade only with Grape, the Pope, the Chief Server Tech and Vaelith, and can buy goods and contracts at the Black Market, but not information or obstacles. The richest Mercenary at day 30 wins the Fortune prize.",
+      "They trade only with Grape, the Chief Server Tech and Vaelith, and can buy goods and contracts at the Black Market, but not information or obstacles. The richest Mercenary at day 30 wins the Fortune prize.",
     ],
   },
   { id: "staff", term: "Staff", short: "The people who run the war: Vaelith and the Server Techs. Every trade and action needs their approval; they keep the record, post the [[hero-tier|hero tier list]] and settle disputes." },
-  {
-    id: "pope",
-    term: "Pope",
-    short: "Sets how much [[faith|Faith]] a Gold offering at a shrine is worth (Vaelith can too). Mercenaries may trade with the Pope.",
-    missing: "How the Pope is chosen and any other powers.",
-  },
   {
     id: "vaelith",
     term: "Vaelith",
@@ -446,7 +440,7 @@ export const glossary: GlossaryEntry[] = [
     more: ["Enemies can [[proselytize]] a Faith building; the Sanctuary relic stops that for 24 hours."],
   },
   { id: "sacred-good", term: "Sacred good", short: "Each kingdom's holy good: Wine for the Crusaders, Incense for the Samurai, Ivory for the Berserkrs. A territory that produces it can make an [[offering]]." },
-  { id: "offering", term: "Offering", short: "Give Vaelith a day's output of your kingdom's [[sacred-good|sacred good]] for 100 Faith, once a day per territory. Members can also offer Gold at shrines; the Pope or Vaelith decide its Faith." },
+  { id: "offering", term: "Offering", short: "Give Vaelith a day's output of your kingdom's [[sacred-good|sacred good]] for 100 Faith, once a day per territory. Members can also offer Gold at shrines; Vaelith decides its Faith." },
   { id: "relic", term: "Relic", short: "Bought with Faith. Sanctuary (2,000): one Faith building can't be Proselytized for 24 hours. Absolution (1,000): wipes one day of one territory's upkeep." },
   {
     id: "fame",

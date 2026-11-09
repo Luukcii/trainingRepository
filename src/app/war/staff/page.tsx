@@ -1,5 +1,5 @@
 // "/war/staff" — who runs the war. Everyone sees Max, the Gods (God and Odin) and the public titles
-// (Owner, HR, Chief Server Technician, Pope). The rest of the staff (techs, faction leaders, seconds in command,
+// (Owner, Head Human Resources, Chief Server Technician). The rest of the staff (techs, faction leaders, seconds in command,
 // territory owners…) appear only for logged-in players; logged-out visitors aren't told they exist.
 // Decided here, on the server: the hidden names never reach a logged-out browser at all.
 import type { Metadata } from "next";

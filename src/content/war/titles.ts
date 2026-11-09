@@ -5,8 +5,6 @@ export const staffTitles = [
   { key: "owner", label: "Owner", public: true },
   { key: "hr", label: "Head Human Resources", public: true },
   { key: "chief-server-technician", label: "Chief Server Technician", public: true },
-  { key: "pope", label: "Pope", public: true },
-  { key: "chaplain", label: "Chaplain", public: true },
   { key: "tech", label: "Tech", public: false },
   { key: "faction-leader", label: "Faction Leader", public: false },
   { key: "second-in-command", label: "Second in Command", public: false },
