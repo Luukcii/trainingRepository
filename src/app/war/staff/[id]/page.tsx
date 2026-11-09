@@ -12,6 +12,7 @@ import { getWarUser } from "@/lib/session";
 import { getStaffMember, staffRecord } from "@/lib/war/staff";
 import { isWarStaffRole } from "@/lib/war/roles";
 import { RoleBadge } from "@/components/war/RoleBadge";
+import { WarLoginRequired } from "@/components/war/account/WarLoginRequired";
 
 export const metadata: Metadata = { title: "Faction War — Staff profile", robots: { index: false } };
 
@@ -33,7 +34,9 @@ export default function StaffProfilePage({ params }: PageProps<"/war/staff/[id]"
 
 async function Profile({ params }: Pick<PageProps<"/war/staff/[id]">, "params">) {
   const { id } = await params;
-  const [person, me] = await Promise.all([getStaffMember(id.slice(0, 100)), getWarUser()]);
+  const me = await getWarUser();
+  if (!me) return <div className="mt-6"><WarLoginRequired what="staff profiles" next="/war/staff" /></div>; // players only
+  const person = await getStaffMember(id.slice(0, 100));
   if (!person) notFound();
   const isMe = me?.id === person.id;
   const canSeeRecord = isWarStaffRole(me?.role);

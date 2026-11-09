@@ -8,6 +8,8 @@ import { WarNav } from "@/components/war/WarNav";
 import { WarMap } from "@/components/war/map/WarMap";
 import { loadWarState } from "@/lib/war/state";
 import { currentViewer } from "@/lib/war/viewer";
+import { getWarUser } from "@/lib/session";
+import { WarLoginRequired } from "@/components/war/account/WarLoginRequired";
 
 export const metadata: Metadata = { title: "Faction War — Map" };
 
@@ -28,5 +30,6 @@ export default function WarMapPage() {
 
 async function LiveMap() {
   await connection(); // fresh numbers for every visitor, never a copy baked in at build time
+  if (!(await getWarUser())) return <WarLoginRequired what="the war map" next="/war/map" />; // players only
   return <WarMap initial={await loadWarState(await currentViewer())} />;
 }

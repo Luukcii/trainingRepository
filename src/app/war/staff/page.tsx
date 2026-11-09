@@ -9,6 +9,8 @@ import { SiteFooter } from "@/components/layout/SiteFooter";
 import { WarNav } from "@/components/war/WarNav";
 import { listStaff } from "@/lib/war/staff";
 import { RoleBadge } from "@/components/war/RoleBadge";
+import { WarLoginRequired } from "@/components/war/account/WarLoginRequired";
+import { getWarUser } from "@/lib/session";
 
 export const metadata: Metadata = { title: "Faction War — Staff", robots: { index: false } };
 
@@ -31,6 +33,7 @@ export default function StaffPage() {
 
 async function StaffList() {
   await connection(); // read the database per visit, not once at build time
+  if (!(await getWarUser())) return <WarLoginRequired what="the staff" next="/war/staff" />; // players only
   const staff = await listStaff();
   if (staff.length === 0) return <p className="text-muted">No staff yet.</p>;
   return (

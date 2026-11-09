@@ -3,9 +3,12 @@
 import { connection } from "next/server";
 import { loadWarState } from "@/lib/war/state";
 import { currentViewer } from "@/lib/war/viewer";
+import { getWarUser } from "@/lib/session";
 
 export async function GET() {
   await connection(); // answer each request fresh; never bake a copy in at build time
+  // Players only, like the map page: without this, anyone could skip the page and read the data here directly.
+  if (!(await getWarUser())) return Response.json({ error: "Log in first" }, { status: 401, headers: { "Cache-Control": "private, no-store" } });
   const state = await loadWarState(await currentViewer());
   return Response.json(state, { headers: { "Cache-Control": "private, no-store" } });
 }
