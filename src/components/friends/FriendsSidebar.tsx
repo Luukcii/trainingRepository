@@ -54,6 +54,7 @@ export function FriendsSidebar() {
   }, [toasts]);
 
   if (!data) return null;
+  if (pathname.startsWith("/war")) return null; // the Faction War has no links back to the members' site
   const onlineCount = data.friends.filter((f) => f.online).length;
   const unreadTotal = [...data.friends, ...data.others].reduce((sum, p) => sum + p.unread, 0);
   const alerts = data.pending + unreadTotal;

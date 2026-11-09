@@ -1,9 +1,9 @@
 // "/war" — the Faction War front page: Max's hand-lettered title, then one button per faction.
 // The page is static (instant for everyone); only the small "who's logged in" line streams in.
+import { WarFooter } from "@/components/war/WarHeader";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { Suspense } from "react";
-import { SiteFooter } from "@/components/layout/SiteFooter";
 import { GothicTitle } from "@/components/war/title/GothicTitle";
 import { OrnamentDivider } from "@/components/war/title/OrnamentDivider";
 import { WarAccountLine } from "@/components/war/account/WarAccountLine";
@@ -52,7 +52,7 @@ export default function WarHomePage() {
           <Link href="/war/map" className="hover:text-[#d4a017]">War map</Link>
         </nav>
       </main>
-      <SiteFooter />
+      <WarFooter />
     </>
   );
 }

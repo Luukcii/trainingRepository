@@ -9,8 +9,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { Suspense } from "react";
 import { notFound } from "next/navigation";
-import { SiteHeader } from "@/components/layout/SiteHeader";
-import { SiteFooter } from "@/components/layout/SiteFooter";
+import { WarHeader, WarFooter } from "@/components/war/WarHeader";
 import { WarNav } from "@/components/war/WarNav";
 import { HowToJoin } from "@/components/war/account/HowToJoin";
 import { FactionDashboard } from "@/components/war/FactionDashboard";
@@ -29,14 +28,14 @@ export function generateStaticParams() {
 export default function FactionPage({ params }: PageProps<"/war/[faction]">) {
   return (
     <>
-      <SiteHeader />
+      <WarHeader />
       <main className="mx-auto w-full max-w-5xl flex-1 px-4 py-8 sm:px-6">
         <WarNav current="home" />
         <Suspense fallback={<p className="text-muted">Loading…</p>}>
           <FactionBody params={params} />
         </Suspense>
       </main>
-      <SiteFooter />
+      <WarFooter />
     </>
   );
 }

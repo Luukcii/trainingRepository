@@ -3,8 +3,7 @@
 // Also works later as "change my password" (current password instead of God's).
 import type { Metadata } from "next";
 import Link from "next/link";
-import { SiteHeader } from "@/components/layout/SiteHeader";
-import { SiteFooter } from "@/components/layout/SiteFooter";
+import { WarHeader, WarFooter } from "@/components/war/WarHeader";
 import { WarNav } from "@/components/war/WarNav";
 import { WarJoinForm } from "@/components/war/account/WarJoinForm";
 
@@ -13,7 +12,7 @@ export const metadata: Metadata = { title: "Faction War — Sign up", robots: { 
 export default function WarJoinPage() {
   return (
     <>
-      <SiteHeader />
+      <WarHeader />
       <main className="mx-auto w-full max-w-md flex-1 px-6 py-12">
         <WarNav current="home" />
         <h1 className="mb-2 text-3xl font-semibold tracking-tight">Sign up for the war</h1>
@@ -23,7 +22,7 @@ export default function WarJoinPage() {
         </p>
         <WarJoinForm />
       </main>
-      <SiteFooter />
+      <WarFooter />
     </>
   );
 }

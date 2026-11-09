@@ -1,8 +1,7 @@
 // "/war/login" — faction-war login with Discord username + password.
 import type { Metadata } from "next";
 import { Suspense } from "react";
-import { SiteHeader } from "@/components/layout/SiteHeader";
-import { SiteFooter } from "@/components/layout/SiteFooter";
+import { WarHeader, WarFooter } from "@/components/war/WarHeader";
 import { WarNav } from "@/components/war/WarNav";
 import { WarLoginForm } from "@/components/war/account/WarLoginForm";
 import { HowToJoin } from "@/components/war/account/HowToJoin";
@@ -18,7 +17,7 @@ function safeNext(value: string | string[] | undefined) {
 export default function WarLoginPage({ searchParams }: PageProps<"/war/login">) {
   return (
     <>
-      <SiteHeader />
+      <WarHeader />
       <main className="mx-auto w-full max-w-md flex-1 px-6 py-12">
         <WarNav current="home" />
         <h1 className="mb-6 text-3xl font-semibold tracking-tight">Log in to the war</h1>
@@ -30,7 +29,7 @@ export default function WarLoginPage({ searchParams }: PageProps<"/war/login">) 
           <HowToJoin />
         </section>
       </main>
-      <SiteFooter />
+      <WarFooter />
     </>
   );
 }

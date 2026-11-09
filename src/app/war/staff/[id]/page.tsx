@@ -1,17 +1,16 @@
-// "/war/staff/<id>" — one staff member's profile. Anyone sees name, title and since when;
-// only staff see their record (everything they've written into the war through God, secret moves included).
+// "/war/staff/<id>" — one staff member's profile. Public titles (and Max) are open to anyone; secret staff only to
+// logged-in players. Only staff see the record (everything they've written into the war through God, secrets included).
 import type { Metadata } from "next";
 import Link from "next/link";
 import { Suspense } from "react";
 import { notFound } from "next/navigation";
-import { SiteHeader } from "@/components/layout/SiteHeader";
-import { SiteFooter } from "@/components/layout/SiteFooter";
+import { WarHeader, WarFooter } from "@/components/war/WarHeader";
 import { WarNav } from "@/components/war/WarNav";
 import { factionIds, factions, type FactionId } from "@/content/war/map";
 import { getWarUser } from "@/lib/session";
-import { getStaffMember, staffRecord } from "@/lib/war/staff";
+import { getStaffMember, isPublicStaff, staffRecord } from "@/lib/war/staff";
 import { isWarStaffRole } from "@/lib/war/roles";
-import { RoleBadge } from "@/components/war/RoleBadge";
+import { StaffBadges } from "@/components/war/RoleBadge";
 import { WarLoginRequired } from "@/components/war/account/WarLoginRequired";
 
 export const metadata: Metadata = { title: "Faction War — Staff profile", robots: { index: false } };
@@ -19,7 +18,7 @@ export const metadata: Metadata = { title: "Faction War — Staff profile", robo
 export default function StaffProfilePage({ params }: PageProps<"/war/staff/[id]">) {
   return (
     <>
-      <SiteHeader />
+      <WarHeader />
       <main className="mx-auto w-full max-w-3xl flex-1 px-4 py-8 sm:px-6">
         <WarNav current="staff" />
         <Link href="/war/staff" className="text-sm text-muted hover:text-foreground">← All staff</Link>
@@ -27,16 +26,19 @@ export default function StaffProfilePage({ params }: PageProps<"/war/staff/[id]"
           <Profile params={params} />
         </Suspense>
       </main>
-      <SiteFooter />
+      <WarFooter />
     </>
   );
 }
 
 async function Profile({ params }: Pick<PageProps<"/war/staff/[id]">, "params">) {
   const { id } = await params;
-  const me = await getWarUser();
-  if (!me) return <div className="mt-6"><WarLoginRequired what="staff profiles" next="/war/staff" /></div>; // players only
-  const person = await getStaffMember(id.slice(0, 100));
+  const [me, person] = await Promise.all([getWarUser(), getStaffMember(id.slice(0, 100))]);
+  // Logged out: only Max and public titles. A secret or unknown id gets the same login box, so the page
+  // never gives away that a hidden staff member exists.
+  if (!me && (!person || !isPublicStaff(person))) {
+    return <div className="mt-6"><WarLoginRequired what="this profile" next="/war/staff" /></div>;
+  }
   if (!person) notFound();
   const isMe = me?.id === person.id;
   const canSeeRecord = isWarStaffRole(me?.role);
@@ -47,7 +49,7 @@ async function Profile({ params }: Pick<PageProps<"/war/staff/[id]">, "params">)
       <header className="rounded-xl border border-line p-5" style={{ borderTop: "6px solid #d4a017" }}>
         <div className="flex flex-wrap items-center gap-3">
           <h1 className="font-stone text-3xl">{person.name}</h1>
-          <RoleBadge role={person.role} />
+          <StaffBadges role={person.role} warTitle={person.warTitle} secretsOk={Boolean(me)} />
           {isMe && <span className="text-sm text-muted">(you)</span>}
         </div>
         <p className="mt-1 text-muted">

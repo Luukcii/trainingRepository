@@ -2,8 +2,7 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
 import { connection } from "next/server";
-import { SiteHeader } from "@/components/layout/SiteHeader";
-import { SiteFooter } from "@/components/layout/SiteFooter";
+import { WarHeader, WarFooter } from "@/components/war/WarHeader";
 import { WarNav } from "@/components/war/WarNav";
 import { WarMap } from "@/components/war/map/WarMap";
 import { loadWarState } from "@/lib/war/state";
@@ -16,14 +15,14 @@ export const metadata: Metadata = { title: "Faction War — Map" };
 export default function WarMapPage() {
   return (
     <>
-      <SiteHeader />
+      <WarHeader />
       <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-8 sm:px-6">
         <WarNav current="map" />
         <Suspense fallback={<p className="text-muted">Loading the war…</p>}>
           <LiveMap />
         </Suspense>
       </main>
-      <SiteFooter />
+      <WarFooter />
     </>
   );
 }

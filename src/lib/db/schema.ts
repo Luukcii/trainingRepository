@@ -24,6 +24,7 @@ export const user = pgTable("user", {
   displayUsername: text("display_username"),
   discordId: text("discord_id").unique(), // proven by the bot: the person who ran /war join
   warFaction: text("war_faction"), // "svaroth" | "kogahara" | "valdyruus", chosen once; null until chosen
+  warTitle: text("war_title"), // staff position shown on /war/staff (keys in content/war/titles.ts); set by the admin only
   createdAt: timestamp("created_at").notNull().defaultNow(),
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
 });
