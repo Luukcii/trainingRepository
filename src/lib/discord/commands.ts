@@ -46,7 +46,7 @@ export const commands = [
       { type: SUB, name: "territory", description: "Who holds a territory and what's on it", options: [place("name", "Territory name")] },
       { type: SUB, name: "moving", description: "Envoys, Attacks and raids on the move" },
       { type: SUB, name: "log", description: "The latest news", options: [{ type: INTEGER, name: "count", description: "How many (default 10)", min_value: 1, max_value: 25 }] },
-      { type: SUB, name: "ask", description: "Ask God anything about the war's rules (only you see the answer)", options: [{ type: STRING, name: "question", description: "Your question", required: true, max_length: 300 }] },
+      { type: SUB, name: "ask", description: "Ask about the war's rules: God answers, or Odin when the mods call him (only you see it)", options: [{ type: STRING, name: "question", description: "Your question", required: true, max_length: 300 }] },
       { type: SUB, name: "rule", description: "Explain a rule or term", options: [{ type: STRING, name: "term", description: "The word to explain", required: true, autocomplete: true }] },
       { type: SUB, name: "map", description: "Link to the war map and rulebooks" },
     ],
@@ -61,8 +61,8 @@ export const commands = [
       {
         type: SUB,
         name: "mind",
-        description: "Switch God's free answers (/war ask): off, Haiku (cheap) or Opus (wise). Empty = show today's use",
-        options: [{ type: STRING, name: "mode", description: "How God answers", choices: [{ name: "Off", value: "off" }, { name: "Haiku (quick, cheap)", value: "haiku" }, { name: "Opus (wise, costs more)", value: "opus" }] }],
+        description: "Who answers /war ask: God (quick, cheap), Odin (wise, costs more) or nobody. Empty = show today's use",
+        options: [{ type: STRING, name: "mode", description: "Who answers", choices: [{ name: "God (quick, cheap)", value: "god" }, { name: "Odin (wise, costs more)", value: "odin" }, { name: "Nobody (off)", value: "off" }] }],
       },
       { type: SUB, name: "day", description: "Set the current war day", options: [{ type: INTEGER, name: "number", description: "War day", required: true, min_value: 1, max_value: 60 }] },
       {

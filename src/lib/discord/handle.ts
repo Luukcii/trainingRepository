@@ -275,7 +275,7 @@ async function staffCommand(sub: Option, actor: string) {
   }
   if (sub.name === "mind") {
     // Works before the war begins too. No choice = just show the current setting and today's use.
-    const labels = { off: "off", haiku: "Haiku (quick and cheap)", opus: "Opus (wise, costs more)" } as const;
+    const labels = { off: "nobody (off)", god: "God (quick and cheap)", odin: "Odin (wise, costs more)" } as const;
     const chosen = read.choice("mode", godMinds);
     if (chosen) await recordGodMind(actor, chosen, labels[chosen]);
     const usage = await askUsageToday();

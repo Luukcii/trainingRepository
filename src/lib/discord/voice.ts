@@ -70,10 +70,19 @@ export const god = {
   askRestingToday: "I've answered many questions today. I rest now. Ask again tomorrow, or ask a mod.",
   askFailed: "I couldn't find the words just now. Try again in a little while, or ask a mod.",
   askRefused: "No. That I will not answer.",
-  askAnswer: (question: string, answer: string) => `> ${question.replace(/\s+/g, " ")}\n\n${answer}\n-# The mods' rulings outrank my words.`,
+  askAnswer: (question: string, answer: string) => `> ${question.replace(/\s+/g, " ")}\n\n${answer}\n-# God has answered. The mods' rulings outrank my words.`,
   mindSet: (label: string, questions: number, dollars: number, awake: boolean) =>
     [
-      `God's answers: **${label}**. ${awake ? "" : "(Asleep until the owner adds the AI key.)"}`.trim(),
+      `Who answers /war ask: **${label}**. ${awake ? "" : "(Asleep until the owner adds the AI key.)"}`.trim(),
       `Last 24 hours: ${questions} question${questions === 1 ? "" : "s"}, about $${dollars.toFixed(2)}.`,
     ].join("\n"),
+};
+
+// Odin, the Allfather: speaks instead of God when a mod switches /warstaff mind to Odin (Max, 8 Nov).
+// An old wanderer who gave an eye for wisdom. Short, weighty lines; calls people "warrior"; favours no kingdom.
+// Only his answers are his: limits and errors before the question stay in God's voice, since God is the bot.
+export const odin = {
+  askAnswer: (question: string, answer: string) => `> ${question.replace(/\s+/g, " ")}\n\n${answer}\n-# Odin has spoken. The mods' rulings outrank him.`,
+  askRefused: "No, warrior. That I will not answer.",
+  askFailed: "The ravens came back with nothing. Ask again in a little while, or ask a mod.",
 };

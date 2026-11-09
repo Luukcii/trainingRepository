@@ -42,7 +42,7 @@ billed per use. A Claude Pro/Max subscription doesn't cover it.
 - Console → **Billing**: add credit and set a **monthly spend limit** (e.g. $5). That limit is the hard brake.
 - Console → **API Keys** → create a key named `hafw-god`. Add it to Vercel (production, sensitive) as
   `ANTHROPIC_API_KEY`, and to `.env.local` to try it locally. Until then God says he doesn't answer free questions yet.
-- Expected cost: Haiku about 0.1¢ an answer, Opus about 2–4¢. Limits: 5 questions an hour per player (30 for staff),
+- Expected cost: God (Haiku) about 0.1¢ an answer, Odin (Opus) about 2–4¢. Limits: 5 questions an hour per player (30 for staff),
   200 a day in total. Mods see the last 24 hours' count and cost with `/warstaff mind`.
 
 ## 3. Claude: switch it on (next session on Max's computer)
@@ -71,7 +71,7 @@ billed per use. A Claude Pro/Max subscription doesn't cover it.
 | `/war territory name` | everyone | Who holds it and its tier; troops, buildings and obstacles only if it's yours (private reply) |
 | `/war moving` | your faction | Your kingdom's Envoys, Attacks and raids, plus Attacks on your land (private reply) |
 | `/war log` | your faction | Your kingdom's news plus announcements and rulings (private reply) |
-| `/war ask question` | everyone | God answers in his own words, from the rulebook only (only you see it). Off until the owner adds the AI key |
+| `/war ask question` | everyone | God answers in his own words (or Odin, when the mods call him), from the rulebook only (only you see it). Off until the owner adds the AI key |
 | `/war rule term` | everyone | Explains a rule (only you see it) |
 | `/war map` | everyone | Links to the map and rulebooks |
 | `/warstaff setup` | staff | Starts the war (refuses if one exists) |
@@ -85,7 +85,7 @@ billed per use. A Claude Pro/Max subscription doesn't cover it.
 | `/warstaff resolve id outcome [capture] [note]` | staff | Arrived / won / lost / called off; `capture` hands a won Attack's target over |
 | `/warstaff reveal id` | staff | Puts a secret movement on the public map |
 | `/warstaff ruling text` | staff | Posts a mods' ruling publicly in God's voice and keeps it in the war log (Claude copies it into the Hardset Register next session) |
-| `/warstaff mind [off/haiku/opus]` | staff | Switches God's free answers: off, Haiku (quick, cheap, the default) or Opus (wise, costs more). Empty = show the setting and the last 24 hours' questions and cost |
+| `/warstaff mind [god/odin/off]` | staff | Who answers `/war ask`: **God** (Haiku: quick, cheap, the default), **Odin** (Opus: the wise old wanderer, costs more) or nobody. Empty = show the setting and the last 24 hours' questions and cost |
 | `/warstaff log` | staff | All news including secret entries (only you see it) |
 
 **Fog of war (8 Nov):** the public (and the public map) see only who holds each territory and its tier. A player

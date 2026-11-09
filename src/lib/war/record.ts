@@ -47,10 +47,10 @@ export async function setUpWar(actor: string) {
   return true;
 }
 
-// A mod switches God's free answers (/war ask) off, to Haiku (cheap) or to Opus (wise). Staff-only log line.
+// A mod chooses who answers /war ask: God (cheap), Odin (wise) or nobody. Staff-only log line.
 export async function recordGodMind(actor: string, mind: string, label: string) {
   await db.insert(warSetting).values({ key: "god_mind", value: mind }).onConflictDoUpdate({ target: warSetting.key, set: { value: mind } });
-  await logEvent(actor, null, "setting", `God's answers: ${label}.`);
+  await logEvent(actor, null, "setting", `/war ask answered by: ${label}.`);
 }
 
 export async function setDay(actor: string, day: number) {
