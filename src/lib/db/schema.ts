@@ -335,6 +335,21 @@ export const godQuestion = pgTable(
   (t) => [index("god_question_discord_at_idx").on(t.discordId, t.at), index("god_question_at_idx").on(t.at)],
 );
 
+// Every command staff type through God, lookups included, and anyone trying a staff command without permission
+// (Max, 9 Nov). Shown to staff on each staff profile and in the staff-log channel. The text of a /war ask chat is
+// never stored, and players' own commands aren't logged.
+export const staffCommand = pgTable(
+  "staff_command",
+  {
+    id: text("id").primaryKey(),
+    discordId: text("discord_id").notNull(),
+    at: timestamp("at").notNull().defaultNow(),
+    command: text("command").notNull(), // as typed, e.g. "/war status kingdom: valdyruus"
+    allowed: boolean("allowed").notNull().default(true), // false = refused: they aren't staff
+  },
+  (t) => [index("staff_command_discord_at_idx").on(t.discordId, t.at), index("staff_command_at_idx").on(t.at)],
+);
+
 // Ongoing conversations with God or Odin (the Reply button), so they remember what was said.
 // Short-lived: deleted 30 minutes after the last message (ask.ts), and only the last few turns are kept.
 export const godChat = pgTable(
