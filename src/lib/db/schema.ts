@@ -24,7 +24,7 @@ export const user = pgTable("user", {
   displayUsername: text("display_username"),
   discordId: text("discord_id").unique(), // proven by the bot: the person who ran /war join
   warFaction: text("war_faction"), // "svaroth" | "kogahara" | "valdyruus", chosen once; null until chosen
-  warTitle: text("war_title"), // staff position shown on /war/staff (keys in content/war/titles.ts); set by the admin only
+  warTitle: text("war_title"), // staff position shown on /war/staff (keys in the war site's content/war/titles.ts); set by the admin only
   createdAt: timestamp("created_at").notNull().defaultNow(),
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
 });
@@ -241,7 +241,8 @@ export const block = pgTable(
 
 // ── Faction war ────────────────────────────────────────────────────────────────────────────────
 // The live record of the war. The Discord bot writes these; the war map reads them.
-// Kingdom and territory ids are the ones in src/content/war/map.ts.
+// Kingdom and territory ids are the ones in the war site's src/content/war/map.ts (Luukcii/God).
+// The war's code lives there now; its tables stay here because this repo owns every migration.
 
 // One row per kingdom: its treasury and scores.
 export const warFaction = pgTable("war_faction", {
@@ -347,7 +348,7 @@ export const godChat = pgTable(
   (t) => [index("god_chat_updated_idx").on(t.updatedAt)],
 );
 
-// UNUSED since 8 Nov (God now makes the account directly, see lib/war/accounts.ts). Kept because dropping a
+// UNUSED since 8 Nov (God now makes the account directly, see the war site's lib/war/accounts.ts). Kept because dropping a
 // table needs the owner's OK. Was: one-time faction-war sign-up links. The Discord bot made one when a player typed /war join, so the
 // Discord account is proven. Like invites, the database keeps only the token's fingerprint (hash).
 export const warJoinToken = pgTable(

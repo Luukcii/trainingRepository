@@ -4,7 +4,6 @@ import { requireAdmin } from "@/lib/session";
 import { Panel } from "@/components/admin/Panel";
 import { InvitePanel } from "@/components/admin/InvitePanel";
 import { ActivityFeed } from "@/components/admin/ActivityFeed";
-import { WarStaffPanel } from "@/components/admin/WarStaffPanel";
 
 export default function AdminPage() {
   return (
@@ -25,7 +24,6 @@ async function Dashboard() {
         <Panel title="Projects">Add, edit, and reorder work items.</Panel>
         <ActivityFeed />
         <InvitePanel />
-        <WarStaffPanel />
       </div>
     </>
   );

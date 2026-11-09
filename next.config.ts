@@ -42,6 +42,13 @@ const nextConfig: NextConfig = {
     // the form around it, and stays under Vercel's 4.5 MB request limit.
     serverActions: { bodySizeLimit: "4mb" },
   },
+  // The Faction War moved to its own private site (9 Nov). Old links and bookmarks land on the same page there.
+  async redirects() {
+    return [
+      { source: "/war", destination: "https://faction-war-steel.vercel.app/war", permanent: false },
+      { source: "/war/:path*", destination: "https://faction-war-steel.vercel.app/war/:path*", permanent: false },
+    ];
+  },
   async headers() {
     return [{ source: "/:path*", headers: securityHeaders }];
   },

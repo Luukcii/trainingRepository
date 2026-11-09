@@ -1,21 +1,10 @@
-// Who's who in the faction war. Roles live in the user table; only the admin (Max) can change them, on /admin.
-//   player — a war account made through God (Discord); sees their own kingdom only.
-//   mod    — war staff: sees every faction ("mod mode"), has a staff profile.
-//   tech   — war staff on the technical side: same view as a mod, different title.
-//   admin  — Max: everything, plus the members' site and /admin.
-export const warStaffRoles = ["mod", "tech"] as const;
-export const warAccountRoles = ["player", ...warStaffRoles] as const; // roles a Discord-made account can hold
-export type WarAccountRole = (typeof warAccountRoles)[number];
+// The Faction War moved to its own private site on 9 Nov (Luukcii/God, https://faction-war-steel.vercel.app),
+// but it still shares this site's database and user table. Its accounts (made through God in Discord) carry
+// these roles. This file stays here for one job: keeping them OUT of the invite-only members' site.
+// If the war ever adds a role, add it here too, or that role would get into the members' site.
+export const warAccountRoles = ["player", "mod", "tech"] as const;
 
-// Max's own badge is "Chaos Coordinator" (Max, 9 Nov; was "God" until the bot took that name): the admin role, above every mod and tech.
-export const roleTitle: Record<string, string> = { admin: "Chaos Coordinator", mod: "Mod", tech: "Tech", player: "Player" };
-
-// Sees every faction on the site, and counts as staff for God's /warstaff commands (lib/discord/handle.ts).
-export function isWarStaffRole(role: string | null | undefined) {
-  return role === "admin" || (warStaffRoles as readonly string[]).includes(role ?? "");
-}
-
-// Accounts made through Discord. They log in to the war only; the invite-only members' site stays shut to them.
+// Accounts made through Discord. They log in to the war only; the members' site treats them as visitors.
 export function isWarOnlyRole(role: string | null | undefined) {
   return (warAccountRoles as readonly string[]).includes(role ?? "");
 }
