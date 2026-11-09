@@ -2,10 +2,10 @@
 // Server-only. It sleeps until the owner adds ANTHROPIC_API_KEY (a Console API key with a monthly spend cap).
 //
 // Two voices (Max, 8 Nov): God answers with Haiku (quick, ~0.1¢ an answer); when a mod switches to Odin, the wise
-// old wanderer answers with Opus (~2–4¢). Only one speaks at a time; mods choose with /warstaff mind.
+// old wanderer answers with Opus (~2–4¢). Only one speaks at a time; mods choose with /warstaff oscillate.
 // Cost guards: the cheap one by default; the expensive one only when a mod switches it on;
 // the rulebook is cached, so after the first question each one pays about a tenth for reading it;
-// per-person and daily limits; mods can switch him off with /warstaff mind.
+// per-person and daily limits; mods can switch him off with /warstaff oscillate.
 // Safety guards: he sees no live war numbers (fog of war can't leak), has no tools (he can't change
 // anything), and his answers go only to the person who asked.
 import Anthropic from "@anthropic-ai/sdk";

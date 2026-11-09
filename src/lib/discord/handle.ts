@@ -273,7 +273,7 @@ async function staffCommand(sub: Option, actor: string) {
       ? reply(god.warBegins)
       : reply(god.alreadyBegun, { private: true });
   }
-  if (sub.name === "mind") {
+  if (sub.name === "oscillate") {
     // Works before the war begins too. No choice = just show the current setting and today's use.
     const labels = { off: "nobody (off)", god: "God (quick and cheap)", odin: "Odin (wise, costs more)" } as const;
     const chosen = read.choice("mode", godMinds);

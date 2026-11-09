@@ -78,7 +78,7 @@ export const god = {
     ].join("\n"),
 };
 
-// Odin, the Allfather: speaks instead of God when a mod switches /warstaff mind to Odin (Max, 8 Nov).
+// Odin, the Allfather: speaks instead of God when a mod switches /warstaff oscillate to Odin (Max, 8 Nov).
 // An old wanderer who gave an eye for wisdom. Short, weighty lines; calls people "warrior"; favours no kingdom.
 // Only his answers are his: limits and errors before the question stay in God's voice, since God is the bot.
 export const odin = {

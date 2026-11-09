@@ -60,8 +60,8 @@ export const commands = [
       { type: SUB, name: "setup", description: "Start the war: every kingdom at 75,000 Gold, all territories at Town Hall (only once)" },
       {
         type: SUB,
-        name: "mind",
-        description: "Who answers /war ask: God (quick, cheap), Odin (wise, costs more) or nobody. Empty = show today's use",
+        name: "oscillate",
+        description: "Who answers /war ask: God (quick questions), Odin (hard questions) or nobody",
         options: [{ type: STRING, name: "mode", description: "Who answers", choices: [{ name: "God (quick, cheap)", value: "god" }, { name: "Odin (wise, costs more)", value: "odin" }, { name: "Nobody (off)", value: "off" }] }],
       },
       { type: SUB, name: "day", description: "Set the current war day", options: [{ type: INTEGER, name: "number", description: "War day", required: true, min_value: 1, max_value: 60 }] },

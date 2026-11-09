@@ -43,7 +43,7 @@ billed per use. A Claude Pro/Max subscription doesn't cover it.
 - Console → **API Keys** → create a key named `hafw-god`. Add it to Vercel (production, sensitive) as
   `ANTHROPIC_API_KEY`, and to `.env.local` to try it locally. Until then God says he doesn't answer free questions yet.
 - Expected cost: God (Haiku) about 0.1¢ an answer, Odin (Opus) about 2–4¢. Limits: 5 questions an hour per player (30 for staff),
-  200 a day in total. Mods see the last 24 hours' count and cost with `/warstaff mind`.
+  200 a day in total. Mods see the last 24 hours' count and cost with `/warstaff oscillate`.
 
 ## 3. Claude: switch it on (next session on Max's computer)
 
@@ -85,7 +85,7 @@ billed per use. A Claude Pro/Max subscription doesn't cover it.
 | `/warstaff resolve id outcome [capture] [note]` | staff | Arrived / won / lost / called off; `capture` hands a won Attack's target over |
 | `/warstaff reveal id` | staff | Puts a secret movement on the public map |
 | `/warstaff ruling text` | staff | Posts a mods' ruling publicly in God's voice and keeps it in the war log (Claude copies it into the Hardset Register next session) |
-| `/warstaff mind [god/odin/off]` | staff | Who answers `/war ask`: **God** (Haiku: quick, cheap, the default), **Odin** (Opus: the wise old wanderer, costs more) or nobody. Empty = show the setting and the last 24 hours' questions and cost |
+| `/warstaff oscillate [god/odin/off]` | staff | Who answers `/war ask`: **God** (Haiku: quick, cheap, the default), **Odin** (Opus: the wise old wanderer, costs more) or nobody. Empty = show the setting and the last 24 hours' questions and cost |
 | `/warstaff log` | staff | All news including secret entries (only you see it) |
 
 **Fog of war (8 Nov):** the public (and the public map) see only who holds each territory and its tier. A player
