@@ -45,8 +45,8 @@ const nextConfig: NextConfig = {
   // The Faction War moved to its own private site (9 Nov). Old links and bookmarks land on the same page there.
   async redirects() {
     return [
-      { source: "/war", destination: "https://faction-war-steel.vercel.app/war", permanent: false },
-      { source: "/war/:path*", destination: "https://faction-war-steel.vercel.app/war/:path*", permanent: false },
+      { source: "/war", destination: "https://faction-war-ha.vercel.app/war", permanent: false },
+      { source: "/war/:path*", destination: "https://faction-war-ha.vercel.app/war/:path*", permanent: false },
     ];
   },
   async headers() {
