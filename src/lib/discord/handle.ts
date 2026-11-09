@@ -65,7 +65,13 @@ export type Interaction = {
   guild_id?: string;
   application_id?: string;
   token?: string; // lets us edit our reply for 15 minutes (used by /war ask)
-  data?: { name?: string; options?: Option[]; custom_id?: string; components?: BoxPart[] }; // custom_id + components: buttons and boxes
+  data?: {
+    name?: string;
+    options?: Option[];
+    custom_id?: string; // buttons and boxes
+    components?: BoxPart[];
+    resolved?: { members?: Record<string, { permissions?: string; roles?: string[] }> }; // people picked in a user option
+  };
   member?: { user: { id: string; username?: string; global_name?: string | null }; permissions?: string; roles?: string[]; nick?: string | null };
 };
 
@@ -153,7 +159,7 @@ export async function handleInteraction(interaction: Interaction, defer?: Defer)
     if (interaction.data.name === "war") return await publicCommand(sub, interaction, defer);
     if (interaction.data.name === "warstaff") {
       if (!(await isStaff(interaction.member))) return reply(god.staffOnly, { private: true });
-      return await staffCommand(sub, interaction.member!.user.id);
+      return await staffCommand(sub, interaction.member!.user.id, interaction);
     }
     return reply(god.unknown, { private: true });
   } catch (error) {
@@ -258,6 +264,7 @@ async function publicCommand(sub: Option, interaction: Interaction, defer?: Defe
       const name = member.nick ?? member.user.global_name ?? member.user.username;
       const result = await createWarAccount(member.user.id, member.user.username, name);
       if (result.kind === "exists") return reply(god.alreadyJoined(result.username, `${siteUrl()}/war/login`), { private: true });
+      if (result.kind === "taken") return reply(god.nameTaken, { private: true });
       return reply(god.welcome(name, result.username, result.password, joinUrl(result.username)), { private: true });
     }
     case "password": {
@@ -344,7 +351,7 @@ async function publicCommand(sub: Option, interaction: Interaction, defer?: Defe
   return reply(god.unknown, { private: true });
 }
 
-async function staffCommand(sub: Option, actor: string) {
+async function staffCommand(sub: Option, actor: string, interaction: Interaction) {
   const read = reader(sub.options);
 
   if (sub.name === "setup") {
@@ -365,6 +372,10 @@ async function staffCommand(sub: Option, actor: string) {
     // Stops God and Odin answering one person (or lets them speak again). Works before the war too.
     const who = read.user("user");
     const lift = read.bool("lift") ?? false;
+    // Staff can't be hushed (Discord admins, Manage Server, the staff role, site Mods/Techs). So nobody can silence
+    // Max, or another mod, from God. Discord sends the picked person's permissions with the command.
+    const picked = interaction.data?.resolved?.members?.[who];
+    if (!lift && (await isStaff({ user: { id: who }, permissions: picked?.permissions, roles: picked?.roles }))) return reply(god.cantHushStaff, { private: true });
     await setHushed(who, !lift);
     await recordHush(actor, who, !lift);
     return reply(lift ? god.hushLifted(who) : god.hushSet(who), { private: true });

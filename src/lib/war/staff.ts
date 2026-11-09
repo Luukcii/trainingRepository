@@ -25,9 +25,15 @@ export function isPublicStaff(p: { role: string; warTitle: string | null }) {
   return p.role === "admin" || Boolean(findTitle(p.warTitle)?.public);
 }
 
-// Order: Max first, then by title (in the order of staffTitles), then mods/techs without a title, then by name.
+// Who stands above whom (Max, 9 Nov): Owner, Head Human Resources, Max, Chief Server Technician. They come
+// before God and Odin on /war/staff. Everyone else follows the gods: by title (staffTitles order), then
+// mods/techs without a title, then by name.
+const topOrder = ["owner", "hr", "admin", "chief-server-technician"];
+const topRank = (p: { role: string; warTitle: string | null }) => topOrder.indexOf(p.role === "admin" ? "admin" : (p.warTitle ?? ""));
+export const isTopStaff = (p: { role: string; warTitle: string | null }) => topRank(p) !== -1;
+
 function rank(p: { role: string; warTitle: string | null }) {
-  if (p.role === "admin") return -1;
+  if (isTopStaff(p)) return topRank(p) - topOrder.length; // always ahead of everyone else
   const i = staffTitles.findIndex((t) => t.key === p.warTitle);
   return i === -1 ? staffTitles.length : i;
 }

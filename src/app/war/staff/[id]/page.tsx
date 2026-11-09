@@ -49,7 +49,7 @@ async function Profile({ params }: Pick<PageProps<"/war/staff/[id]">, "params">)
       <header className="rounded-xl border border-line p-5" style={{ borderTop: "6px solid #d4a017" }}>
         <div className="flex flex-wrap items-center gap-3">
           <h1 className="font-stone text-3xl">{person.name}</h1>
-          <StaffBadges role={person.role} warTitle={person.warTitle} secretsOk={Boolean(me)} />
+          <StaffBadges role={person.role} warTitle={person.warTitle} secretsOk={canSeeRecord} />
           {isMe && <span className="text-sm text-muted">(you)</span>}
         </div>
         <p className="mt-1 text-muted">

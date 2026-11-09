@@ -1,4 +1,5 @@
-// "/war/staff" — who runs the war. Everyone sees Max, the Gods (God and Odin) and the public titles
+// "/war/staff" — who runs the war, in rank order: Owner, Head Human Resources, Max, Chief Server Technician,
+// then the Gods (God and Odin), then everyone else. Everyone sees Max, the Gods and the public titles
 // (Owner, Head Human Resources, Chief Server Technician). The rest of the staff (techs, faction leaders, seconds in command,
 // territory owners…) appear only for logged-in players; logged-out visitors aren't told they exist.
 // Decided here, on the server: the hidden names never reach a logged-out browser at all.
@@ -11,7 +12,8 @@ import { WarNav } from "@/components/war/WarNav";
 import { StaffBadges } from "@/components/war/RoleBadge";
 import { gods } from "@/content/war/titles";
 import { getWarUser } from "@/lib/session";
-import { isPublicStaff, listStaff } from "@/lib/war/staff";
+import { isWarStaffRole } from "@/lib/war/roles";
+import { isPublicStaff, isTopStaff, listStaff } from "@/lib/war/staff";
 
 export const metadata: Metadata = { title: "Faction War — Staff", robots: { index: false } };
 
@@ -36,13 +38,14 @@ async function StaffList() {
   await connection(); // read the database per visit, not once at build time
   const [me, all] = await Promise.all([getWarUser(), listStaff()]);
   const people = me ? all : all.filter(isPublicStaff); // logged out: public positions only
-  const [max, rest] = [people.filter((p) => p.role === "admin"), people.filter((p) => p.role !== "admin")];
-  const secretsOk = Boolean(me);
+  // Owner, Head Human Resources, Max and Chief Server Technician stand above the gods; everyone else below.
+  const [top, rest] = [people.filter(isTopStaff), people.filter((p) => !isTopStaff(p))];
+  const secretsOk = isWarStaffRole(me?.role); // Mod/Tech badges: staff only, so players can't tell who runs God
 
   return (
     <div className="space-y-6">
       <ul className="grid gap-3 sm:grid-cols-2">
-        {max.map((p) => (
+        {top.map((p) => (
           <Person key={p.id} p={p} secretsOk={secretsOk} />
         ))}
         {gods.map((g) => (

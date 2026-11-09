@@ -29,7 +29,8 @@ function godPassword() {
 
 export type JoinResult =
   | { kind: "created"; username: string; password: string }
-  | { kind: "exists"; username: string };
+  | { kind: "exists"; username: string }
+  | { kind: "taken" }; // the name already belongs to an account not tied to this Discord account (e.g. Max's own)
 
 // Called by God for /war join. Makes the account, or says this Discord account already has one.
 export async function createWarAccount(discordId: string, discordUsername: string, displayName: string): Promise<JoinResult> {
@@ -38,6 +39,10 @@ export async function createWarAccount(discordId: string, discordUsername: strin
 
   const username = cleanUsername(discordUsername);
   if (username.length < 2) throw new Error("unusable Discord username");
+  // Never touch or link an account that already has this name: God only makes new ones. Linking an existing
+  // account to a Discord account is done by hand, by Claude, after checking with Max.
+  const [named] = await db.select({ id: user.id }).from(user).where(eq(user.username, username)).limit(1);
+  if (named) return { kind: "taken" };
   const password = godPassword();
 
   let userId: string | null = null;

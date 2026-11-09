@@ -38,6 +38,7 @@ export const god = {
       `The old one no longer works, and every device logged in as you has been sent out.`,
       `Enter it at ${url}, and choose your own there if you like. Only you can see this message.`,
     ].join("\n"),
+  nameTaken: "An account with your name already exists here, and it isn't tied to this Discord account. I won't touch it. Ask the mods.",
   noAccount: "You have no war account yet. Type `/war join` and I'll make one.",
 
   // Kingdom secrets (fog of war)
@@ -78,6 +79,7 @@ export const god = {
   chatOver: "That conversation has ended. Start a new one with `/war ask`.",
   hushed: "The mods have asked me not to answer you for now. Take it up with them.",
   hushSet: (who: string) => `I won't answer <@${who}> until the mods say otherwise. Recorded.`,
+  cantHushStaff: "No. The mods are not silenced by one another. Bring it to the owner.",
   hushLifted: (who: string) => `<@${who}> may speak with me again. Recorded.`,
   mindSet: (label: string, questions: number, dollars: number, awake: boolean) =>
     [
