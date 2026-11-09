@@ -317,6 +317,22 @@ export const warSetting = pgTable("war_setting", {
   value: text("value").notNull(),
 });
 
+// One row per question asked with /war ask: who and when (for the hourly limit) and what it cost.
+// The question itself is not kept: we only store what the limits and the bill need.
+export const godQuestion = pgTable(
+  "god_question",
+  {
+    id: text("id").primaryKey(),
+    discordId: text("discord_id").notNull(),
+    at: timestamp("at").notNull().defaultNow(),
+    model: text("model").notNull(),
+    inputTokens: integer("input_tokens").notNull().default(0), // full-price input
+    cachedTokens: integer("cached_tokens").notNull().default(0), // the rulebook, read back from the cache (~10% price)
+    outputTokens: integer("output_tokens").notNull().default(0),
+  },
+  (t) => [index("god_question_discord_at_idx").on(t.discordId, t.at), index("god_question_at_idx").on(t.at)],
+);
+
 // UNUSED since 8 Nov (God now makes the account directly, see lib/war/accounts.ts). Kept because dropping a
 // table needs the owner's OK. Was: one-time faction-war sign-up links. The Discord bot made one when a player typed /war join, so the
 // Discord account is proven. Like invites, the database keeps only the token's fingerprint (hash).

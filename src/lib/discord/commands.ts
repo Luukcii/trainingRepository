@@ -46,6 +46,7 @@ export const commands = [
       { type: SUB, name: "territory", description: "Who holds a territory and what's on it", options: [place("name", "Territory name")] },
       { type: SUB, name: "moving", description: "Envoys, Attacks and raids on the move" },
       { type: SUB, name: "log", description: "The latest news", options: [{ type: INTEGER, name: "count", description: "How many (default 10)", min_value: 1, max_value: 25 }] },
+      { type: SUB, name: "ask", description: "Ask God anything about the war's rules (only you see the answer)", options: [{ type: STRING, name: "question", description: "Your question", required: true, max_length: 300 }] },
       { type: SUB, name: "rule", description: "Explain a rule or term", options: [{ type: STRING, name: "term", description: "The word to explain", required: true, autocomplete: true }] },
       { type: SUB, name: "map", description: "Link to the war map and rulebooks" },
     ],
@@ -57,6 +58,12 @@ export const commands = [
     dm_permission: false,
     options: [
       { type: SUB, name: "setup", description: "Start the war: every kingdom at 75,000 Gold, all territories at Town Hall (only once)" },
+      {
+        type: SUB,
+        name: "mind",
+        description: "Switch God's free answers (/war ask): off, Haiku (cheap) or Opus (wise). Empty = show today's use",
+        options: [{ type: STRING, name: "mode", description: "How God answers", choices: [{ name: "Off", value: "off" }, { name: "Haiku (quick, cheap)", value: "haiku" }, { name: "Opus (wise, costs more)", value: "opus" }] }],
+      },
       { type: SUB, name: "day", description: "Set the current war day", options: [{ type: INTEGER, name: "number", description: "War day", required: true, min_value: 1, max_value: 60 }] },
       {
         type: SUB,

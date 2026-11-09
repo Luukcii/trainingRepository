@@ -1,7 +1,11 @@
 // POST /api/discord/interactions — Discord's doorbell. Every slash command typed in the server arrives
 // here as a signed request. We check the signature first; anything unsigned is turned away.
+import { after } from "next/server";
 import { verifyDiscordRequest } from "@/lib/discord/verify";
 import { handleInteraction, PING, type Interaction } from "@/lib/discord/handle";
+
+// /war ask keeps working after the quick reply, while the AI writes God's answer. A minute is plenty.
+export const maxDuration = 60;
 
 export async function POST(request: Request) {
   const publicKey = process.env.DISCORD_PUBLIC_KEY;
@@ -24,5 +28,5 @@ export async function POST(request: Request) {
   // Discord checks the doorbell works by sending a PING when the URL is saved in the Developer Portal.
   if (interaction.type === PING) return Response.json({ type: 1 });
 
-  return Response.json(await handleInteraction(interaction));
+  return Response.json(await handleInteraction(interaction, (work) => after(work)));
 }

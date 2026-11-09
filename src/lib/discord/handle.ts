@@ -8,12 +8,14 @@ import { stripMarkup } from "@/lib/war/markup";
 import { isAnnouncement, loadWarState } from "@/lib/war/state";
 import { createWarAccount, factionOfDiscordUser, isSiteWarStaff, resetWarPassword } from "@/lib/war/accounts";
 import { god } from "./voice";
+import { answerQuestion, askConfigured, askUsageToday, checkAskLimit, followUpTarget, getGodMind, godMinds, QUESTION_MAX, reserveQuestion } from "./ask";
 import { tierNames, type Tier, type WarViewer } from "@/lib/war/types";
 import {
   changeStat,
   getTerritoryRow,
   isWarSetUp,
   recentEvents,
+  recordGodMind,
   recordRuling,
   resolveMovement,
   revealMovement,
@@ -30,6 +32,7 @@ const COMMAND = 2;
 const AUTOCOMPLETE = 4;
 const REPLY = 4;
 const AUTOCOMPLETE_RESULT = 8;
+const THINKING = 5; // "God is thinking…": we fill in the real reply a moment later
 const EPHEMERAL = 64; // only the person who ran the command sees the reply
 
 const ADMINISTRATOR = BigInt(1 << 3);
@@ -39,6 +42,8 @@ type Option = { name: string; type: number; value?: string | number | boolean; f
 export type Interaction = {
   type: number;
   guild_id?: string;
+  application_id?: string;
+  token?: string; // lets us edit our reply for 15 minutes (used by /war ask)
   data?: { name: string; options?: Option[] };
   member?: { user: { id: string; username?: string; global_name?: string | null }; permissions?: string; roles?: string[]; nick?: string | null };
 };
@@ -95,7 +100,10 @@ async function isStaff(member: Interaction["member"]): Promise<boolean> {
   return isSiteWarStaff(member.user.id);
 }
 
-export async function handleInteraction(interaction: Interaction) {
+// Work to finish after Discord has its quick reply (the website passes Next.js's after()).
+export type Defer = (work: () => Promise<void>) => void;
+
+export async function handleInteraction(interaction: Interaction, defer?: Defer) {
   // Only our own server. Anyone could add a bot to their server, where they are admin: without this check,
   // they could run /warstaff there and rewrite our war.
   if (interaction.guild_id !== process.env.DISCORD_GUILD_ID) {
@@ -109,7 +117,7 @@ export async function handleInteraction(interaction: Interaction) {
   if (interaction.type !== COMMAND) return reply(god.unknown, { private: true });
 
   try {
-    if (interaction.data.name === "war") return await publicCommand(sub, interaction.member);
+    if (interaction.data.name === "war") return await publicCommand(sub, interaction, defer);
     if (interaction.data.name === "warstaff") {
       if (!(await isStaff(interaction.member))) return reply(god.staffOnly, { private: true });
       return await staffCommand(sub, interaction.member!.user.id);
@@ -145,9 +153,25 @@ async function viewerFor(member: Interaction["member"]): Promise<WarViewer> {
   return factionOfDiscordUser(member.user.id);
 }
 
-async function publicCommand(sub: Option, member: Interaction["member"]) {
+async function publicCommand(sub: Option, interaction: Interaction, defer?: Defer) {
+  const member = interaction.member;
   const read = reader(sub.options);
   switch (sub.name) {
+    case "ask": {
+      if (!member) return reply(god.cantReadAccount, { private: true });
+      const question = read.text("question", QUESTION_MAX);
+      if (!question) throw new InputError(god.badInput("question"));
+      if (!askConfigured() || !defer) return reply(god.askAsleep(`${siteUrl()}/war/rules`), { private: true });
+      const mind = await getGodMind();
+      if (mind === "off") return reply(god.askSilenced, { private: true });
+      const limit = await checkAskLimit(member.user.id, await isStaff(member));
+      if (limit !== "ok") return reply(limit === "hour" ? god.askTooMany : god.askRestingToday, { private: true });
+      const target = followUpTarget(interaction.application_id, interaction.token);
+      if (!target) return reply(god.askFailed, { private: true });
+      const id = await reserveQuestion(member.user.id, mind);
+      defer(() => answerQuestion(id, question, mind, target));
+      return { type: THINKING, data: { flags: EPHEMERAL } }; // only the asker sees "thinking" and the answer
+    }
     case "join": {
       // Discord itself tells us who ran the command, so the account is tied to a proven Discord account.
       if (!member?.user.username) return reply(god.cantReadAccount, { private: true });
@@ -248,6 +272,14 @@ async function staffCommand(sub: Option, actor: string) {
     return started
       ? reply(god.warBegins)
       : reply(god.alreadyBegun, { private: true });
+  }
+  if (sub.name === "mind") {
+    // Works before the war begins too. No choice = just show the current setting and today's use.
+    const labels = { off: "off", haiku: "Haiku (quick and cheap)", opus: "Opus (wise, costs more)" } as const;
+    const chosen = read.choice("mode", godMinds);
+    if (chosen) await recordGodMind(actor, chosen, labels[chosen]);
+    const usage = await askUsageToday();
+    return reply(god.mindSet(labels[chosen ?? (await getGodMind())], usage.questions, usage.dollars, askConfigured()), { private: true });
   }
   if (!(await isWarSetUp())) return reply(god.setupFirst, { private: true });
 

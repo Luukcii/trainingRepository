@@ -34,12 +34,24 @@ The bot token is a password for the bot. Only the command-registration script us
   plus `DISCORD_APPLICATION_ID` and `DISCORD_GUILD_ID`.
 - It never goes into Vercel or `.env.local`: the website only needs the public key.
 
+### Owner: God's free answers (`/war ask`, optional, costs money)
+
+God answers free questions with Claude. That needs an API key from the Claude Console (console.anthropic.com),
+billed per use. A Claude Pro/Max subscription doesn't cover it.
+
+- Console → **Billing**: add credit and set a **monthly spend limit** (e.g. $5). That limit is the hard brake.
+- Console → **API Keys** → create a key named `hafw-god`. Add it to Vercel (production, sensitive) as
+  `ANTHROPIC_API_KEY`, and to `.env.local` to try it locally. Until then God says he doesn't answer free questions yet.
+- Expected cost: Haiku about 0.1¢ an answer, Opus about 2–4¢. Limits: 5 questions an hour per player (30 for staff),
+  200 a day in total. Mods see the last 24 hours' count and cost with `/warstaff mind`.
+
 ## 3. Claude: switch it on (next session on Max's computer)
 
 1. Merge this work to `main` (deploys the pages and the bot endpoint).
 2. ~~`npm run db:migrate`~~ Done 8 Nov: migrations 0007 (`war_*` tables) and 0008 (war accounts) are applied.
 3. Add to Vercel (production) and `.env.local`: `DISCORD_PUBLIC_KEY`, `DISCORD_GUILD_ID`, optional `WAR_STAFF_ROLE_ID`. Redeploy.
-4. `npm run discord:register`: sends the command list to Discord. Run again after changing `src/lib/discord/commands.ts`.
+4. ~~migration 0010 (`god_question`)~~ applied 8 Nov.
+5. `npm run discord:register`: sends the command list to Discord. Run again after changing `src/lib/discord/commands.ts`.
 
 ## 4. Max: plug in the doorbell, start the war
 
@@ -59,6 +71,7 @@ The bot token is a password for the bot. Only the command-registration script us
 | `/war territory name` | everyone | Who holds it and its tier; troops, buildings and obstacles only if it's yours (private reply) |
 | `/war moving` | your faction | Your kingdom's Envoys, Attacks and raids, plus Attacks on your land (private reply) |
 | `/war log` | your faction | Your kingdom's news plus announcements and rulings (private reply) |
+| `/war ask question` | everyone | God answers in his own words, from the rulebook only (only you see it). Off until the owner adds the AI key |
 | `/war rule term` | everyone | Explains a rule (only you see it) |
 | `/war map` | everyone | Links to the map and rulebooks |
 | `/warstaff setup` | staff | Starts the war (refuses if one exists) |
@@ -72,6 +85,7 @@ The bot token is a password for the bot. Only the command-registration script us
 | `/warstaff resolve id outcome [capture] [note]` | staff | Arrived / won / lost / called off; `capture` hands a won Attack's target over |
 | `/warstaff reveal id` | staff | Puts a secret movement on the public map |
 | `/warstaff ruling text` | staff | Posts a mods' ruling publicly in God's voice and keeps it in the war log (Claude copies it into the Hardset Register next session) |
+| `/warstaff mind [off/haiku/opus]` | staff | Switches God's free answers: off, Haiku (quick, cheap, the default) or Opus (wise, costs more). Empty = show the setting and the last 24 hours' questions and cost |
 | `/warstaff log` | staff | All news including secret entries (only you see it) |
 
 **Fog of war (8 Nov):** the public (and the public map) see only who holds each territory and its tier. A player
@@ -87,3 +101,7 @@ Players link Discord through `/war join`, so God knows which kingdom each Discor
 - **Staff checked on our server**: Discord hides `/warstaff` from non-staff, and the site checks again. Staff = Discord admins / Manage Server, the `WAR_STAFF_ROLE_ID` role, or anyone Max made a Mod or Tech on `/admin`. A site Mod without Manage Server won't *see* `/warstaff` until Max allows it for them in Discord: Server Settings → Integrations → God → `/warstaff`.
 - **No pings**: text typed into commands can't trigger `@everyone` when the bot repeats it.
 - **Least privilege**: the website holds only the public key; the bot token stays in `.env.tools`.
+- **God's free answers (`/war ask`)**: he reads only the public rulebook and glossary, never live war numbers, so he
+  can't leak a kingdom's secrets. He has no tools, so he can't change anything. Answers are private to the asker, can't
+  ping anyone, and end with "The mods' rulings outrank my words." He's told to send anything unsettled to the mods and never
+  to guess. The question text isn't stored, only who asked, when, and the token counts (for limits and cost).

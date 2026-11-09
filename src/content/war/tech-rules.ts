@@ -8,7 +8,7 @@ const TIERS = "Town Hall / Castle / Fortress";
 export const techRules: Rulebook = {
   title: "Faction War: Full Rulebook",
   subtitle: "Every rule and number, organised for leaders, owners and staff. Tap any underlined term for its definition.",
-  asOf: "8 Nov 2026 (Hardset Register through decision 169)",
+  asOf: "8 Nov 2026 (Hardset Register through decision 172)",
   sections: [
     {
       id: "scope",

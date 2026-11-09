@@ -13,6 +13,7 @@
     "discord:register": "node --env-file=.env.tools --import tsx scripts/register-discord-commands.ts"
   },
   "dependencies": {
+    "@anthropic-ai/sdk": "^1.6.0",
     "@neondatabase/serverless": "^1.2.0",
     "better-auth": "^1.7.14",
     "drizzle-orm": "^0.45.4",

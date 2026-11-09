@@ -62,4 +62,18 @@ export const god = {
   pickOutcome: "Pick an outcome.",
   noMovement: (id: string) => `There's no movement with the code \`${id}\`.`,
   recorded: "Recorded.",
+
+  // Free questions (/war ask). His answers themselves are written by the AI, kept in this voice by ask.ts.
+  askAsleep: (url: string) => `I don't answer free questions yet. The mods haven't opened that door. Try \`/war rule\`, or read the rulebook: ${url}`,
+  askSilenced: "The mods have asked me to keep silent for now. Try `/war rule`, or ask a mod.",
+  askTooMany: "You've asked enough for this hour. Think on what I told you, and come back later.",
+  askRestingToday: "I've answered many questions today. I rest now. Ask again tomorrow, or ask a mod.",
+  askFailed: "I couldn't find the words just now. Try again in a little while, or ask a mod.",
+  askRefused: "No. That I will not answer.",
+  askAnswer: (question: string, answer: string) => `> ${question.replace(/\s+/g, " ")}\n\n${answer}\n-# The mods' rulings outrank my words.`,
+  mindSet: (label: string, questions: number, dollars: number, awake: boolean) =>
+    [
+      `God's answers: **${label}**. ${awake ? "" : "(Asleep until the owner adds the AI key.)"}`.trim(),
+      `Last 24 hours: ${questions} question${questions === 1 ? "" : "s"}, about $${dollars.toFixed(2)}.`,
+    ].join("\n"),
 };
